@@ -1,0 +1,143 @@
+.order-detail-page {
+  background: var(--jd-bg);
+  min-height: 100vh;
+  font-family: "Noto Sans SC", "Source Han Sans SC", "HarmonyOS Sans SC", "PingFang SC";
+}
+
+.order-detail-page .page {
+  padding: 14px var(--jd-space-sm) 80px;
+}
+
+.detail-card {
+  background: rgba(255, 255, 255, 0.98);
+  border-radius: var(--jd-radius-lg);
+  padding: 12px;
+  border: 1px solid #f3e8e1;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.05);
+  margin-bottom: 12px;
+}
+
+.status-card {
+  background: linear-gradient(135deg, #fff1ea 0%, #fff7f2 100%);
+}
+
+.status-title {
+  font-size: var(--jd-font-md);
+  font-weight: 800;
+  color: var(--jd-red-strong);
+  margin-bottom: 4px;
+}
+
+.status-sub {
+  font-size: var(--jd-font-xs);
+  color: var(--jd-text-secondary);
+}
+
+.card-title {
+  font-size: var(--jd-font-sm);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.address-main {
+  font-size: var(--jd-font-sm);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.address-sub {
+  font-size: var(--jd-font-xs);
+  color: var(--jd-text-secondary);
+}
+
+.goods-item {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid #f3f3f3;
+}
+
+.goods-item:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.goods-thumb {
+  width: 68px;
+  height: 68px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+}
+
+.goods-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.goods-title {
+  font-size: var(--jd-font-sm);
+  font-weight: 600;
+}
+
+.goods-sku {
+  font-size: var(--jd-font-xs);
+  color: var(--jd-muted);
+}
+
+.goods-right {
+  text-align: right;
+  font-size: var(--jd-font-xs);
+  color: var(--jd-text-secondary);
+}
+
+.goods-price {
+  font-size: var(--jd-font-sm);
+  color: var(--jd-red-strong);
+  font-weight: 700;
+}
+
+.meta-card .meta-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: var(--jd-font-sm);
+}
+
+.meta-card .meta-row.total {
+  font-size: var(--jd-font-sm);
+  font-weight: 700;
+  color: var(--jd-red-strong);
+}
+
+.service-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.service-tags .mini-tag {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #fff3ef;
+  color: var(--jd-red-strong);
+  border: 1px solid #ffd6c7;
+  font-size: var(--jd-font-xs);
+}
+
+.detail-card {
+  animation: fadeOrderDetail 0.35s ease both;
+}
+
+@keyframes fadeOrderDetail {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

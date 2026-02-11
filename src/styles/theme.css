@@ -1,0 +1,44 @@
+:root {
+  --jd-red: #e1251b;
+  --jd-red-strong: #c81623;
+  --jd-orange: #ff6a00;
+  --jd-orange-light: #ff8f1f;
+  --jd-gold: #ffcc66;
+  --jd-bg: #f7f7f7;
+  --jd-card: #ffffff;
+  --jd-text: #1f1f1f;
+  --jd-text-secondary: #6b6b6b;
+  --jd-muted: #9a9a9a;
+  --jd-border: #ededed;
+  --jd-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --jd-radius-lg: 18px;
+  --jd-radius-md: 12px;
+  --jd-radius-sm: 8px;
+  --jd-space-xxs: 4px;
+  --jd-space-xs: 8px;
+  --jd-space-sm: 12px;
+  --jd-space-md: 16px;
+  --jd-space-lg: 20px;
+  --jd-space-xl: 28px;
+  --jd-font-xs: 12px;
+  --jd-font-sm: 14px;
+  --jd-font-md: 16px;
+  --jd-font-lg: 18px;
+  --jd-font-xl: 22px;
+
+  --nut-primary-color: var(--jd-red);
+  --nut-primary-color-end: var(--jd-orange);
+  --nut-help-color: var(--jd-orange);
+  --nut-title-color: var(--jd-text);
+  --nut-title-color2: var(--jd-text-secondary);
+  --nut-text-color: var(--jd-text);
+  --nut-text-color2: var(--jd-text-secondary);
+  --nut-border-color: var(--jd-border);
+  --nut-gray-2: #f6f6f6;
+  --nut-gray-3: #f2f2f2;
+  --nut-font-size-2: 12px;
+  --nut-font-size-3: 14px;
+  --nut-font-size-4: 16px;
+  --nut-radius-2: var(--jd-radius-sm);
+  --nut-radius-3: var(--jd-radius-md);
+}

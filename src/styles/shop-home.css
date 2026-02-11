@@ -1,0 +1,81 @@
+.shop-home {
+  background: var(--jd-bg);
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+.shop-home .shop-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--jd-space-sm);
+}
+
+.shop-home .shop-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  color: var(--jd-text);
+}
+
+.shop-home .shop-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #ff7a45;
+}
+
+.shop-home .follow-btn {
+  background: var(--jd-orange-light);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 6px 12px;
+  font-size: var(--jd-font-xs);
+}
+
+.shop-tabs {
+  display: flex;
+  gap: 16px;
+  padding: 0 var(--jd-space-sm) 8px;
+  font-weight: 600;
+}
+
+.shop-tabs .active {
+  color: #ff7a45;
+}
+
+.shop-card {
+  background: #fff;
+  border-radius: 18px;
+  margin: var(--jd-space-sm);
+  padding: 12px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+
+.shop-card-title {
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.shop-banner {
+  height: 140px;
+  border-radius: 14px;
+  background: #f0f0f0;
+  display: grid;
+  place-items: center;
+  color: #888;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.shop-item {
+  background: #fff5f6;
+  border-radius: 14px;
+  height: 110px;
+}
