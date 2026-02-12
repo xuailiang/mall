@@ -93,9 +93,14 @@
         <div class="cell-row" @click="showCoupon = true">
           <span class="cell-tit">优惠</span>
           <div class="cell-val">
-            <span class="tag-lite tag-action">年货节</span>
-            <span class="tag-lite tag-action">无门槛立减金</span>
-            <span class="tag-lite tag-action">高价回收</span>
+            <span
+              v-for="item in couponPreviewList"
+              :key="item.id"
+              class="tag-lite tag-action"
+            >
+              {{ item.title }}
+            </span>
+            <span v-if="couponMoreCount > 0" class="tag-lite tag-more">更多优惠{{ couponMoreCount }}个</span>
           </div>
           <div class="cell-more">···</div>
         </div>
@@ -117,12 +122,45 @@
       <span class="rank-more">></span>
     </section>
 
-    <section id="reviews" class="section">
+    <section id="reviews" class="section review-section">
       <div class="section-title">
         <span>商品评价</span>
-        <span class="hint">98% 好评</span>
+        <span class="hint">{{ positiveRate }}% 好评 · {{ reviews.length }}条</span>
       </div>
-      <div class="review-card" v-for="item in reviews" :key="item.id">
+      <div class="review-summary">
+        <div class="review-score-main">
+          <span class="review-score-val">{{ reviewAverage.toFixed(1) }}</span>
+          <span class="review-score-label">综合评分</span>
+        </div>
+        <div class="review-score-bars">
+          <div class="score-line">
+            <span>质量</span>
+            <div class="score-track"><span style="width: 96%"></span></div>
+          </div>
+          <div class="score-line">
+            <span>物流</span>
+            <div class="score-track"><span style="width: 93%"></span></div>
+          </div>
+          <div class="score-line">
+            <span>服务</span>
+            <div class="score-track"><span style="width: 95%"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="review-filter-row">
+        <button
+          v-for="item in reviewFilterOptions"
+          :key="item.value"
+          class="review-filter-btn"
+          :class="{ active: reviewFilter === item.value }"
+          @click="reviewFilter = item.value"
+        >
+          {{ item.label }}
+          <span v-if="item.count > 0">({{ item.count }})</span>
+        </button>
+        <button class="review-create-btn" @click="showReviewEditor = true">写评价</button>
+      </div>
+      <div class="review-card" v-for="item in filteredReviews" :key="item.id">
         <div class="review-head">
           <div class="review-user">
             <nut-avatar size="32" />
@@ -131,12 +169,29 @@
               <div class="list-meta">{{ item.date }}</div>
             </div>
           </div>
-          <nut-rate v-model="item.rate" readonly />
+          <nut-rate :model-value="item.rate" readonly />
         </div>
         <div class="review-content">{{ item.content }}</div>
         <div class="review-tags">
           <nut-tag v-for="tag in item.tags" :key="tag" type="primary">{{ tag }}</nut-tag>
         </div>
+        <div class="review-image-grid" v-if="item.images?.length">
+          <img
+            v-for="(img, index) in item.images"
+            :key="`${item.id}-${index}`"
+            :src="img"
+            alt="评价图片"
+          />
+        </div>
+        <div class="review-foot">
+          <span class="review-meta">{{ item.rate >= 4 ? '推荐购买' : '一般' }}</span>
+          <button class="review-like-btn" :class="{ active: item.liked }" @click="toggleReviewLike(item)">
+            {{ item.liked ? '已赞' : '有帮助' }} {{ item.helpful }}
+          </button>
+        </div>
+      </div>
+      <div class="review-empty" v-if="!filteredReviews.length">
+        暂无符合条件的评价，切换筛选试试
       </div>
     </section>
 
@@ -184,7 +239,7 @@
 
     <div class="footer v2">
       <div class="foot-icons">
-        <div class="foot-item">
+        <div class="foot-item" @click="router.push('/shop-home')">
           <IconFont name="shop" size="20" />
           <span>店铺</span>
         </div>
@@ -192,8 +247,9 @@
           <IconFont name="service" size="20" />
           <span>客服</span>
         </div>
-        <div class="foot-item">
+        <div class="foot-item" @click="router.push('/cart')">
           <IconFont name="cart" size="20" />
+          <span v-if="cartCount > 0" class="foot-badge">{{ cartCount > 99 ? '99+' : cartCount }}</span>
           <span>购物车</span>
         </div>
       </div>
@@ -325,16 +381,79 @@
             </div>
           </div>
         </div>
+        <div class="sku-summary-bar">
+          <div class="sku-summary-main">已选：{{ selectedSize }} {{ selectedColor }}，{{ skuCount }}件</div>
+          <div class="sku-summary-price">预计到手 ¥{{ (parseFloat(currentPrice) * skuCount).toFixed(2) }}</div>
+        </div>
         <button class="sku-confirm" :disabled="currentStock === 0" @click="confirmSkuBuy">
           {{ skuAction === 'buy' ? '确认并购买' : '确认加入购物车' }}
         </button>
+      </div>
+    </nut-popup>
+
+    <nut-popup v-model:visible="showReviewEditor" position="bottom" round>
+      <div class="popup review-editor-popup">
+        <div class="popup-header">
+          <span>发布商品评价</span>
+          <nut-icon name="close" @click="showReviewEditor = false" />
+        </div>
+        <div class="review-editor-section">
+          <div class="review-editor-label">评分</div>
+          <div class="review-editor-stars">
+            <button
+              v-for="star in 5"
+              :key="star"
+              class="star-btn"
+              :class="{ active: star <= reviewDraft.rate }"
+              @click="reviewDraft.rate = star"
+            >★</button>
+          </div>
+        </div>
+        <div class="review-editor-section">
+          <div class="review-editor-label">评价内容</div>
+          <textarea
+            class="review-editor-textarea"
+            maxlength="120"
+            v-model.trim="reviewDraft.content"
+            placeholder="说说你的真实使用感受，帮助更多买家"
+          ></textarea>
+          <div class="review-editor-limit">{{ reviewDraft.content.length }}/120</div>
+        </div>
+        <div class="review-editor-section">
+          <div class="review-editor-label">评价标签</div>
+          <div class="review-editor-tags">
+            <button
+              v-for="tag in reviewTagLibrary"
+              :key="tag"
+              class="review-tag-btn"
+              :class="{ active: reviewDraft.tags.includes(tag) }"
+              @click="toggleDraftTag(tag)"
+            >{{ tag }}</button>
+          </div>
+        </div>
+        <div class="review-editor-section">
+          <div class="review-editor-switch">
+            <span>匿名评价</span>
+            <button class="line-btn" :class="{ primary: reviewDraft.anonymous }" @click="reviewDraft.anonymous = !reviewDraft.anonymous">
+              {{ reviewDraft.anonymous ? '已开启' : '未开启' }}
+            </button>
+          </div>
+          <div class="review-editor-switch">
+            <span>上传示例图片</span>
+            <button class="line-btn" @click="appendDraftImage">添加图片</button>
+          </div>
+          <div class="review-editor-images" v-if="reviewDraft.images.length">
+            <img v-for="(img, index) in reviewDraft.images" :key="`${img}-${index}`" :src="img" alt="示例图片" />
+          </div>
+        </div>
+        <button class="btn-solid review-submit-btn" @click="submitReview">提交评价</button>
       </div>
     </nut-popup>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getProductById, getProducts } from '../api/products'
 import { useCartStore } from '../stores/cart'
@@ -344,19 +463,9 @@ import { IconFont } from '@nutui/icons-vue'
 const route = useRoute()
 const router = useRouter()
 const cartStore = useCartStore()
+const REVIEW_STORAGE_PREFIX = 'mall_product_reviews_v1_'
 
 const currentProduct = ref({})
-
-onMounted(async () => {
-    handleScroll()
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    const product = await getProductById(route.params.id)
-    currentProduct.value = product
-    
-    // Fetch recommend list
-    const allProducts = await getProducts()
-    recommendList.value = allProducts.slice(0, 4)
-})
 
 const featureCards = computed(() => {
   const imgs = currentProduct.value.gallery || []
@@ -399,6 +508,9 @@ const coupons = ref([
 const sortedCoupons = computed(() => {
   return [...coupons.value].sort((a, b) => Number(a.claimed) - Number(b.claimed))
 })
+
+const couponPreviewList = computed(() => sortedCoupons.value.slice(0, 2))
+const couponMoreCount = computed(() => Math.max(sortedCoupons.value.length - couponPreviewList.value.length, 0))
 
 const claimCoupon = (item) => {
   if (item.claimed) return
@@ -452,6 +564,7 @@ const skuKey = computed(() => `${selectedSize.value}|${selectedColor.value}`)
 const currentSku = computed(() => skuMap[skuKey.value] ?? { price: '0.00', stock: 0 })
 const currentPrice = computed(() => currentSku.value.price)
 const currentStock = computed(() => currentSku.value.stock)
+const cartCount = computed(() => cartStore.allItems.length)
 
 const isSizeDisabled = (size) => {
   return colors.every((color) => (skuMap[`${size}|${color}`]?.stock ?? 0) === 0)
@@ -493,26 +606,117 @@ const incQty = () => {
   skuCount.value = Math.min(currentStock.value || 1, skuCount.value + 1)
 }
 
-const reviews = ref([
+const reviewDefaults = [
   {
-    id: 1,
+    id: 'r1',
     name: '清风',
     date: '2026-02-04',
+    timestamp: 1707000000000,
     rate: 5,
     content: '做工扎实，安装方便，收纳效果很好。',
-    tags: ['结实', '好安装']
+    tags: ['结实', '好安装'],
+    images: ['https://picsum.photos/seed/review1/200/200'],
+    helpful: 12,
+    liked: false
   },
   {
-    id: 2,
+    id: 'r2',
     name: '阿宁',
     date: '2026-02-02',
+    timestamp: 1706827200000,
     rate: 4,
     content: '颜色很正，和家里风格很搭，快递也快。',
-    tags: ['颜值高', '发货快']
+    tags: ['颜值高', '发货快'],
+    images: [],
+    helpful: 8,
+    liked: false
   }
-])
+]
+
+const reviews = ref([])
+const reviewFilter = ref('all')
+const showReviewEditor = ref(false)
+const reviewTagLibrary = ['做工好', '发货快', '性价比高', '颜值高', '包装好', '安装方便']
+const reviewDraft = reactive({
+  rate: 5,
+  content: '',
+  tags: [],
+  anonymous: true,
+  images: []
+})
+
+const reviewAverage = computed(() => {
+  if (!reviews.value.length) return 0
+  const total = reviews.value.reduce((sum, item) => sum + Number(item.rate || 0), 0)
+  return total / reviews.value.length
+})
+
+const positiveRate = computed(() => {
+  if (!reviews.value.length) return 100
+  const positive = reviews.value.filter((item) => Number(item.rate) >= 4).length
+  return Math.round((positive / reviews.value.length) * 100)
+})
+
+const reviewFilterOptions = computed(() => {
+  const total = reviews.value.length
+  const withImage = reviews.value.filter((item) => item.images?.length).length
+  const positive = reviews.value.filter((item) => Number(item.rate) >= 4).length
+  return [
+    { label: '全部', value: 'all', count: total },
+    { label: '有图', value: 'image', count: withImage },
+    { label: '好评', value: 'positive', count: positive },
+    { label: '最新', value: 'latest', count: 0 }
+  ]
+})
+
+const filteredReviews = computed(() => {
+  const list = [...reviews.value]
+  if (reviewFilter.value === 'image') {
+    return list.filter((item) => item.images?.length)
+  }
+  if (reviewFilter.value === 'positive') {
+    return list.filter((item) => Number(item.rate) >= 4)
+  }
+  if (reviewFilter.value === 'latest') {
+    return list.sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0))
+  }
+  return list
+})
 
 const recommendList = ref([])
+
+const getReviewStorageKey = (productId) => `${REVIEW_STORAGE_PREFIX}${productId}`
+
+const persistReviews = () => {
+  const targetId = currentProduct.value?.id || route.params.id
+  if (!targetId) return
+  window.localStorage.setItem(getReviewStorageKey(targetId), JSON.stringify(reviews.value))
+}
+
+const loadReviews = (productId) => {
+  const key = getReviewStorageKey(productId)
+  const raw = window.localStorage.getItem(key)
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) {
+        reviews.value = parsed
+        return
+      }
+    } catch (error) {
+      // fallback to defaults
+    }
+  }
+  reviews.value = JSON.parse(JSON.stringify(reviewDefaults))
+}
+
+const loadPageData = async (productId) => {
+  const product = await getProductById(productId)
+  currentProduct.value = product
+  loadReviews(product.id || productId)
+  const allProducts = await getProducts()
+  recommendList.value = allProducts.slice(0, 4)
+}
 
 const markHeroLoaded = (idx) => {
   heroLoaded.value[idx] = true
@@ -537,6 +741,68 @@ const shareProduct = async () => {
     }
   }
   window.alert('已复制分享链接')
+}
+
+const toggleReviewLike = (item) => {
+  if (item.liked) {
+    item.helpful = Math.max(0, Number(item.helpful || 0) - 1)
+  } else {
+    item.helpful = Number(item.helpful || 0) + 1
+  }
+  item.liked = !item.liked
+  persistReviews()
+}
+
+const toggleDraftTag = (tag) => {
+  if (reviewDraft.tags.includes(tag)) {
+    reviewDraft.tags = reviewDraft.tags.filter((item) => item !== tag)
+  } else if (reviewDraft.tags.length < 3) {
+    reviewDraft.tags = [...reviewDraft.tags, tag]
+  }
+}
+
+const appendDraftImage = () => {
+  if (reviewDraft.images.length >= 3) {
+    showToast.text('最多添加 3 张图片')
+    return
+  }
+  reviewDraft.images = [
+    ...reviewDraft.images,
+    `https://picsum.photos/seed/review${Date.now()}${reviewDraft.images.length}/200/200`
+  ]
+}
+
+const resetReviewDraft = () => {
+  reviewDraft.rate = 5
+  reviewDraft.content = ''
+  reviewDraft.tags = []
+  reviewDraft.anonymous = true
+  reviewDraft.images = []
+}
+
+const submitReview = () => {
+  if (!reviewDraft.content || reviewDraft.content.length < 5) {
+    showToast.text('评价内容至少 5 个字')
+    return
+  }
+  const now = new Date()
+  reviews.value.unshift({
+    id: `r_${Date.now()}`,
+    name: reviewDraft.anonymous ? '匿名用户' : '京东用户',
+    date: now.toISOString().slice(0, 10),
+    timestamp: Date.now(),
+    rate: reviewDraft.rate,
+    content: reviewDraft.content,
+    tags: reviewDraft.tags.length ? [...reviewDraft.tags] : ['真实评价'],
+    images: [...reviewDraft.images],
+    helpful: 0,
+    liked: false
+  })
+  persistReviews()
+  showReviewEditor.value = false
+  resetReviewDraft()
+  reviewFilter.value = 'latest'
+  showToast.success('评价已提交')
 }
 
 const priceStyleMap = {
@@ -645,12 +911,26 @@ const updateActiveTab = () => {
 }
 
 watch(showSku, (val) => {
-  document.body.style.overflow = val ? 'hidden' : ''
+  document.body.style.overflow = val || showReviewEditor.value ? 'hidden' : ''
 })
 
-onMounted(() => {
+watch(showReviewEditor, (val) => {
+  document.body.style.overflow = val || showSku.value ? 'hidden' : ''
+})
+
+watch(() => route.params.id, async (nextId) => {
+  if (!nextId) return
+  await loadPageData(nextId)
+  window.scrollTo({ top: 0, behavior: 'auto' })
+  activeTab.value = 'product'
+  reviewFilter.value = 'all'
+  resetReviewDraft()
+})
+
+onMounted(async () => {
   handleScroll()
   window.addEventListener('scroll', handleScroll, { passive: true })
+  await loadPageData(route.params.id)
 })
 
 onUnmounted(() => {

@@ -17,6 +17,10 @@
         <div class="store-head">
           <span class="store-tag">自营</span>
           <span class="store-name">{{ store.name }}</span>
+          <span class="store-metrics" v-if="!isEditMode">
+            已选{{ getStoreCheckedCount(store) }}件 · ¥{{ getStoreCheckedTotal(store).toFixed(2) }}
+            <em v-if="getStoreDiscount(store) > 0">已省¥{{ getStoreDiscount(store).toFixed(2) }}</em>
+          </span>
           <span class="store-coupon" @click="showCouponPopup(store)">领券</span>
         </div>
         
@@ -35,6 +39,7 @@
           <div
             class="cart-swipe"
             :class="{ open: item.swiped }"
+            @click.capture="handleSwipeContainerClick(item, $event)"
             @touchstart="onTouchStart(item, $event)"
             @touchmove="onTouchMove(item, $event)"
             @touchend="onTouchEnd(item)"
@@ -58,9 +63,10 @@
                 <div class="cart-price-line">
                   <span class="cart-price">¥{{ item.price.toFixed(2) }}</span>
                   <span class="price-drop" v-if="item.priceDrop">降¥{{ item.priceDrop }}</span>
+                  <span class="cart-est">到手 ¥{{ getEstimatedPrice(item).toFixed(2) }}</span>
                 </div>
-                <div class="cart-final" v-if="item.directSave">
-                  预估到手 ¥{{ (item.price * item.qty - item.directSave).toFixed(2) }}
+                <div class="cart-final" v-if="item.directSave > 0">
+                  已优惠 ¥{{ ((item.directSave || 0) * item.qty).toFixed(2) }}
                 </div>
               </div>
               <div class="cart-right">
@@ -225,7 +231,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref, onMounted } from 'vue'
+import { computed, reactive, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { products } from '../mock/products'
 import { getProducts } from '../api/products'
@@ -291,6 +297,27 @@ const getStoreCheckedTotal = (store) => {
     .reduce((sum, item) => sum + item.price * item.qty, 0)
 }
 
+const getStoreCheckedCount = (store) => {
+  return store.items
+    .filter(i => !i.invalid && i.checked)
+    .reduce((sum, item) => sum + item.qty, 0)
+}
+
+const getStoreDiscount = (store) => {
+  const selected = store.items.filter((item) => !item.invalid && item.checked)
+  if (!selected.length) return 0
+  const direct = selected.reduce((sum, item) => sum + (item.directSave || 0) * item.qty, 0)
+  const total = selected.reduce((sum, item) => sum + item.price * item.qty, 0)
+  const fullCut = store.fullCut && total >= store.fullCut.threshold ? store.fullCut.discount : 0
+  const coupon = store.coupon || 0
+  return direct + fullCut + coupon
+}
+
+const getEstimatedPrice = (item) => {
+  const directSave = (item.directSave || 0) * item.qty
+  return Math.max(item.price * item.qty - directSave, 0)
+}
+
 // Coupon popup
 const showCoupon = ref(false)
 const currentStore = ref(null)
@@ -341,6 +368,7 @@ const clearInvalidItems = () => {
 }
 
 onMounted(async () => {
+  window.addEventListener('scroll', closeAllSwipes, { passive: true })
   const data = await getProducts()
   recommend.value = data
   
@@ -369,6 +397,10 @@ onMounted(async () => {
   }
 })
 
+onUnmounted(() => {
+  window.removeEventListener('scroll', closeAllSwipes)
+})
+
 // Swipe to delete
 const swipeState = reactive({
   startX: 0,
@@ -378,11 +410,17 @@ const swipeState = reactive({
   swipingId: null
 })
 
-const closeAllSwipes = () => {
-  cartStore.stores.forEach((store) => store.items.forEach((i) => { i.swiped = false }))
+const closeAllSwipes = (exceptId = null) => {
+  cartStore.stores.forEach((store) =>
+    store.items.forEach((i) => {
+      if (exceptId !== null && i.id === exceptId) return
+      i.swiped = false
+    })
+  )
 }
 
 const onTouchStart = (item, e) => {
+  closeAllSwipes(item.id)
   swipeState.startX = e.touches[0].clientX
   swipeState.startY = e.touches[0].clientY
   swipeState.currentX = swipeState.startX
@@ -416,6 +454,14 @@ const onTouchEnd = (item) => {
     item.swiped = true
   }
   swipeState.swipingId = null
+}
+
+const handleSwipeContainerClick = (item, e) => {
+  if (!item.swiped) return
+  if (e.target.closest('.cart-swipe-delete')) return
+  e.preventDefault()
+  e.stopPropagation()
+  item.swiped = false
 }
 
 const toggleItem = (item) => {
