@@ -1,6 +1,9 @@
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import NutUI from '@nutui/nutui'
+import { IconFont } from '@nutui/icons-vue'
 import '@nutui/nutui/dist/style.css'
+import '@nutui/icons-vue/dist/style_iconfont.css'
 import './styles/theme.css'
 import './styles/base.css'
 import './styles/sections.css'
@@ -15,6 +18,9 @@ import App from './App.vue'
 import router from './router'
 
 const app = createApp(App)
+const pinia = createPinia()
+
+app.use(pinia)
 app.use(NutUI)
 app.use(router)
 app.mount('#app')

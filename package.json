@@ -9,12 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@nutui/icons-vue": "^0.1.1",
+    "@nutui/nutui": "^4.1.0",
+    "pinia": "^3.0.4",
     "vue": "^3.4.0",
-    "vue-router": "^4.3.0",
-    "@nutui/nutui": "^4.1.0"
+    "vue-router": "^4.3.0"
   },
   "devDependencies": {
-    "vite": "^5.0.0",
-    "@vitejs/plugin-vue": "^5.0.0"
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.0.0"
   }
 }

@@ -6,7 +6,7 @@
       :style="{ '--nav-alpha': navAlpha }"
     >
     <div class="nav-btn" aria-label="返回" @click="goBack">
-        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        <IconFont name="rect-left" />
       </div>
       <div class="nav-tabs">
         <span class="nav-tab" :class="{ active: activeTab === 'product' }" @click="scrollToSection('product')">商品</span>
@@ -15,7 +15,7 @@
         <span class="nav-tab" :class="{ active: activeTab === 'recommend' }" @click="scrollToSection('recommend')">推荐</span>
       </div>
       <div class="nav-btn" aria-label="更多" @click="shareProduct">
-        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+        <IconFont name="more-x" />
       </div>
     </header>
 
@@ -185,15 +185,15 @@
     <div class="footer v2">
       <div class="foot-icons">
         <div class="foot-item">
-          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 7h18l2 6H1l2-6zm2 8h14v6H5v-6zm3 1v4h2v-4H8zm6 0v4h2v-4h-2z"/></svg>
+          <IconFont name="shop" size="20" />
           <span>店铺</span>
         </div>
         <div class="foot-item">
-          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 2a9 9 0 0 0-9 9v3a3 3 0 0 0 3 3h2v-5H6v-2a6 6 0 1 1 12 0v2h-2v5h2a3 3 0 0 0 3-3v-3a9 9 0 0 0-9-9zm-2 15h4v2h-4v-2z"/></svg>
+          <IconFont name="service" size="20" />
           <span>客服</span>
         </div>
         <div class="foot-item">
-          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM6.2 6l.6 3h11.5a1 1 0 0 1 .98 1.2l-1.1 5.2a2 2 0 0 1-1.96 1.6H8.1a2 2 0 0 1-1.96-1.6L4.3 4H2V2h3a1 1 0 0 1 .98.8L6.2 6z"/></svg>
+          <IconFont name="cart" size="20" />
           <span>购物车</span>
         </div>
       </div>
@@ -336,14 +336,26 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { products } from '../mock/products'
+import { getProductById, getProducts } from '../api/products'
+import { useCartStore } from '../stores/cart'
+import { showToast } from '@nutui/nutui'
+import { IconFont } from '@nutui/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
+const cartStore = useCartStore()
 
-const currentProduct = computed(() => {
-  const found = products.find((item) => item.id === route.params.id)
-  return found || products[0]
+const currentProduct = ref({})
+
+onMounted(async () => {
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    const product = await getProductById(route.params.id)
+    currentProduct.value = product
+    
+    // Fetch recommend list
+    const allProducts = await getProducts()
+    recommendList.value = allProducts.slice(0, 4)
 })
 
 const featureCards = computed(() => {
@@ -500,7 +512,7 @@ const reviews = ref([
   }
 ])
 
-const recommendList = computed(() => products.slice(0, 4))
+const recommendList = ref([])
 
 const markHeroLoaded = (idx) => {
   heroLoaded.value[idx] = true
@@ -594,11 +606,22 @@ const confirmSkuBuy = () => {
   showSku.value = false
   if (skuAction.value === 'buy') {
     goOrderConfirm()
+  } else {
+    cartStore.addItem({
+        ...currentProduct.value,
+        sku: `${selectedSize.value} ${selectedColor.value}`,
+        price: parseFloat(currentPrice.value)
+    })
+    showToast.success('加入购物车成功')
   }
 }
 
 const goBack = () => {
-  router.back()
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    router.push('/')
+  }
 }
 
 const scrollToSection = (id) => {

@@ -8,11 +8,33 @@
       <div class="home-avatar">👤</div>
     </header>
 
+    <div class="home-banner">
+      <nut-swiper :init-page="0" :auto-play="3000" pagination-visible pagination-color="#426543" loop>
+        <nut-swiper-item v-for="(item, index) in banners" :key="index">
+          <img :src="item" alt="" class="banner-img" />
+        </nut-swiper-item>
+      </nut-swiper>
+    </div>
+
     <section class="home-card category-card">
       <div class="category-list">
         <div v-for="item in categories" :key="item.id" class="category-item">
-          <div class="category-icon">{{ item.icon }}</div>
+          <div class="category-icon"><img :src="item.icon" /></div>
           <div>{{ item.label }}</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-card new-arrivals">
+      <div class="section-head">
+        <span class="sec-tit">新品首发</span>
+        <span class="sec-sub">每日上新 0元试用</span>
+      </div>
+      <div class="scroll-x">
+        <div class="new-item" v-for="item in recommend.slice(0,4)" :key="item.id">
+          <img :src="item.image" />
+          <div class="new-title">{{ item.title }}</div>
+          <div class="new-price">¥{{ item.price }}</div>
         </div>
       </div>
     </section>
@@ -73,19 +95,33 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { products } from '../mock/products'
+import { getProducts } from '../api/products'
 
 const router = useRouter()
 const search = ref('')
+const featured = ref([])
+const recommend = ref([])
+const banners = [
+  'https://storage.360buyimg.com/jdc-article/NutUItaro34.jpg',
+  'https://storage.360buyimg.com/jdc-article/NutUItaro2.jpg',
+  'https://storage.360buyimg.com/jdc-article/welcomenutui.jpg',
+  'https://storage.360buyimg.com/jdc-article/fristfabu.jpg'
+]
+
 
 const categories = [
-  { id: 1, label: '京东超市', icon: '超市' },
-  { id: 2, label: '京东电器', icon: '3C' },
-  { id: 3, label: '服饰美妆', icon: '美' },
-  { id: 4, label: '充值中心', icon: '充' },
-  { id: 5, label: 'PLUS会员', icon: '⭐' }
+  { id: 1, label: '京东超市', icon: 'https://img12.360buyimg.com/img/jfs/t1/189258/34/33649/2264/646b1ba1F057b774c/13374825921869e5.png' },
+  { id: 2, label: '数码电器', icon: 'https://img10.360buyimg.com/img/jfs/t1/192028/25/33312/2699/646b1ba1F3325785d/7c374c431055743a.png' },
+  { id: 3, label: '京东服饰', icon: 'https://img11.360buyimg.com/img/jfs/t1/110757/27/36142/2610/646b1ba1F63ff4f5e/164930372df03d42.png' },
+  { id: 4, label: '京东生鲜', icon: 'https://img12.360buyimg.com/img/jfs/t1/94315/26/36417/2507/646b1ba1F95638573/6045502c385311f6.png' },
+  { id: 5, label: 'PLUS会员', icon: 'https://img12.360buyimg.com/img/jfs/t1/189258/34/33649/2264/646b1ba1F057b774c/13374825921869e5.png' },
+  { id: 6, label: '优惠券', icon: 'https://img10.360buyimg.com/img/jfs/t1/192028/25/33312/2699/646b1ba1F3325785d/7c374c431055743a.png' },
+  { id: 7, label: '充值缴费', icon: 'https://img11.360buyimg.com/img/jfs/t1/110757/27/36142/2610/646b1ba1F63ff4f5e/164930372df03d42.png' },
+  { id: 8, label: '领京豆', icon: 'https://img12.360buyimg.com/img/jfs/t1/94315/26/36417/2507/646b1ba1F95638573/6045502c385311f6.png' },
+  { id: 9, label: '领金贴', icon: 'https://img12.360buyimg.com/img/jfs/t1/189258/34/33649/2264/646b1ba1F057b774c/13374825921869e5.png' },
+  { id: 10, label: '省钱卡', icon: 'https://img10.360buyimg.com/img/jfs/t1/192028/25/33312/2699/646b1ba1F3325785d/7c374c431055743a.png' }
 ]
 
 const promoPatterns = {
@@ -97,13 +133,17 @@ const promoPatterns = {
   base: { type: 'base', label: '日常', short: '日常好价', extra: '' }
 }
 
-const featured = products.slice(0, 4)
-const recommend = products.map((item) => ({
-  ...item,
-  promo: promoPatterns[item.promoType || 'base']
-}))
-
 const goProduct = (id) => {
-  router.push(`/product/${id}`)
+  // Use push for navigating to a new page in the stack
+  router.push({ name: 'product', params: { id } })
 }
+
+onMounted(async () => {
+    const data = await getProducts()
+    featured.value = data.slice(0, 4)
+    recommend.value = data.map((item) => ({
+      ...item,
+      promo: promoPatterns[item.promoType || 'base']
+    }))
+})
 </script>
