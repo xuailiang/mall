@@ -1,0 +1,224 @@
+.profile-page {
+    background: #f7f7f7;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    padding-bottom: calc(100px + env(safe-area-inset-bottom));
+}
+
+/* Immersive Header Background */
+.profile-header-bg {
+    background: linear-gradient(135deg, #fa2c19 0%, #fa6419 100%);
+    padding-bottom: 30px;
+    position: relative;
+}
+
+.navbar.profile-navbar {
+    background: transparent;
+    color: #fff;
+    border-bottom: none;
+}
+
+.navbar.profile-navbar .title,
+.navbar.profile-navbar .actions {
+    color: #fff;
+}
+
+/* Hero Section */
+.profile-hero {
+    padding: 0 12px 12px;
+}
+
+.hero-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0 20px;
+    color: #fff;
+}
+
+.hero-info {
+    flex: 1;
+}
+
+.hero-name {
+    font-size: 18px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.hero-sub {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-bottom: 6px;
+}
+
+.user-badge {
+    display: inline-block;
+    font-size: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+/* PLUS Card */
+.hero-plus-card {
+    background: linear-gradient(90deg, #333333, #4a4a4a);
+    color: #f6d59c;
+    padding: 10px 12px;
+    border-radius: 10px 0 0 10px;
+    margin-right: -12px;
+    width: 100px;
+    font-size: 11px;
+}
+
+.plus-text {
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.plus-hint {
+    font-size: 9px;
+    opacity: 0.9;
+}
+
+/* Top Assets Grid */
+.hero-asset {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+}
+
+.asset-item {
+    text-align: center;
+    color: #fff;
+}
+
+.asset-num {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.asset-label {
+    font-size: 11px;
+    opacity: 0.9;
+}
+
+/* Page Content */
+.profile-page .page {
+    margin-top: -12px;
+    padding: 0 12px;
+    position: relative;
+    z-index: 2;
+}
+
+/* Card Overrides */
+.detail-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.main-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #333;
+}
+
+.hint {
+    font-size: 11px;
+    color: #999;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Order Grid */
+.order-grid {
+    display: flex;
+    justify-content: space-around;
+    padding: 5px 0;
+}
+
+.order-item {
+    text-align: center;
+    position: relative;
+}
+
+.order-icon-wrap {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 6px;
+    color: #333;
+}
+
+.item-label {
+    font-size: 11px;
+    color: #666;
+}
+
+.order-badge {
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    background: #fa2c19;
+    color: #fff;
+    font-size: 10px;
+    min-width: 14px;
+    height: 14px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #fff;
+    padding: 0 3px;
+}
+
+/* Wallet/Asset Grid */
+.asset-grid {
+    display: flex;
+    justify-content: space-around;
+}
+
+.asset-section .asset-item {
+    color: #333;
+}
+
+.asset-val {
+    font-size: 15px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+/* Service Grid */
+.service-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    row-gap: 20px;
+    padding: 5px 0;
+}
+
+.service-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.service-icon {
+    color: #fa2c19;
+    margin-bottom: 8px;
+}
