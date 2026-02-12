@@ -1202,12 +1202,12 @@
   position: absolute;
   left: 10px;
   top: 10px;
-  padding: 4px 8px;
+  padding: 3px 6px;
   border-radius: 999px;
   color: #fff;
-  font-size: var(--jd-font-xs);
+  font-size: 11px;
   font-weight: 700;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .promo-ribbon.seckill {
@@ -1236,9 +1236,24 @@
 
 .home-good-tags {
   display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-bottom: 6px;
+  gap: 4px;
+  flex-wrap: nowrap;
+  align-items: center;
+  margin-bottom: 4px;
+  overflow: hidden;
+}
+
+.tag-lite {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: #6b6b6b;
+  background: #f6f6f6;
+  border: 1px solid #ededed;
+  white-space: nowrap;
 }
 
 .home-good-title {
@@ -1248,25 +1263,30 @@
 }
 
 .home-good-price {
-  color: #2a6df4;
-  font-weight: 700;
+  color: var(--jd-red);
+  font-weight: 800;
   margin-bottom: 4px;
+  letter-spacing: 0.2px;
 }
 
 .promo-pills {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 6px;
+  flex-wrap: nowrap;
+  gap: 4px;
+  margin-bottom: 4px;
+  overflow: hidden;
 }
 
 .promo-pill {
-  font-size: var(--jd-font-xs);
-  padding: 2px 8px;
+  font-size: 11px;
+  height: 18px;
+  line-height: 18px;
+  padding: 0 6px;
   border-radius: 999px;
   border: 1px solid transparent;
   background: #fff1f0;
   color: #ff3b30;
+  white-space: nowrap;
 }
 
 .promo-pill.seckill {

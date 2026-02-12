@@ -23,6 +23,25 @@
     color: #fff;
 }
 
+.message-entry {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}
+
+.message-badge {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--jd-red);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
+}
+
 /* Hero Section */
 .profile-hero {
     padding: 0 12px 12px;
@@ -89,6 +108,7 @@
     display: flex;
     justify-content: space-around;
     padding: 10px 0;
+    margin-top: 6px;
 }
 
 .asset-item {

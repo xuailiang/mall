@@ -5,6 +5,10 @@
         <div class="nav-left"></div>
         <div class="title">我的</div>
         <div class="actions">
+          <div class="message-entry" @click="goMessages">
+            <IconFont name="message" size="20" />
+            <span v-if="unreadTotal > 0" class="message-badge"></span>
+          </div>
           <IconFont name="setting" size="20" />
         </div>
       </header>
@@ -66,7 +70,7 @@
           <span class="main-title">常用工具</span>
         </div>
         <div class="service-grid">
-          <div class="service-item" v-for="item in services" :key="item.label">
+          <div class="service-item" v-for="item in services" :key="item.label" @click="goService(item.path)">
             <IconFont :name="item.icon" size="24" class="service-icon" />
             <div class="item-label">{{ item.label }}</div>
           </div>
@@ -79,10 +83,13 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { IconFont } from '@nutui/icons-vue'
+import { useMessagesStore } from '../stores/messages'
 import '../styles/profile.css'
 
 const router = useRouter()
 const goOrders = () => router.push('/orders')
+const goMessages = () => router.push('/messages')
+const goService = (path) => router.push(path)
 
 const topAssets = [
   { label: '卡包', num: 7 },
@@ -99,14 +106,14 @@ const orderMenu = [
 ]
 
 const services = [
-  { label: '商品收藏', icon: 'star' },
-  { label: '店铺关注', icon: 'shop' },
-  { label: '足迹', icon: 'clock' },
-  { label: '我的活动', icon: 'gift' },
-  { label: '地址管理', icon: 'location' },
-  { label: '账户设置', icon: 'setting' },
-  { label: '客服中心', icon: 'service' },
-  { label: '帮助反馈', icon: 'ask' }
+  { label: '商品收藏', icon: 'star', path: '/favorites' },
+  { label: '店铺关注', icon: 'shop', path: '/follows' },
+  { label: '足迹', icon: 'clock', path: '/footprints' },
+  { label: '我的活动', icon: 'gift', path: '/activities' },
+  { label: '地址管理', icon: 'location', path: '/addresses' },
+  { label: '账户设置', icon: 'setting', path: '/account' },
+  { label: '客服中心', icon: 'service', path: '/support' },
+  { label: '帮助反馈', icon: 'ask', path: '/help' }
 ]
 
 const assets = [
@@ -115,4 +122,7 @@ const assets = [
   { label: '余额', desc: '¥0.00' },
   { label: '积分', desc: '999' }
 ]
+
+const { unreadCount } = useMessagesStore()
+const unreadTotal = unreadCount
 </script>

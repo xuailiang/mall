@@ -14,6 +14,8 @@ import './styles/category.css'
 import './styles/cart.css'
 import './styles/order-list.css'
 import './styles/order-detail.css'
+import './styles/messages.css'
+import './styles/profile-services.css'
 import App from './App.vue'
 import router from './router'
 
