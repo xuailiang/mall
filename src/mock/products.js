@@ -84,5 +84,33 @@ export const products = [
     detailImages: [imagePool.detail1, imagePool.detail2],
     video: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
     promoType: 'base'
+  },
+  {
+    id: 'p7',
+    title: '智能破壁机 Pro 预约款',
+    desc: 'PLUS 会员专享 到手更低',
+    price: '369.00',
+    original: '499.00',
+    badge: '会员专享',
+    stock: 32,
+    image: imagePool.lamp,
+    gallery: [imagePool.lamp, imagePool.detail2, imagePool.detail1],
+    detailImages: [imagePool.detail2, imagePool.detail1],
+    video: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+    promoType: 'member'
+  },
+  {
+    id: 'p8',
+    title: '新客专享加厚收纳箱 3只装',
+    desc: '首单立减 赠运费险',
+    price: '39.90',
+    original: '79.00',
+    badge: '新人价',
+    stock: 55,
+    image: imagePool.organizer,
+    gallery: [imagePool.organizer, imagePool.detail3, imagePool.detail2],
+    detailImages: [imagePool.detail3, imagePool.detail2],
+    video: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+    promoType: 'newbie'
   }
 ]

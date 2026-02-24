@@ -54,7 +54,7 @@
         </div>
 
         <!-- Logistics Snippet -->
-        <div v-if="order.deliverySnippet" class="delivery-snippet">
+        <div v-if="order.deliverySnippet" class="delivery-snippet" @click.stop="router.push('/logistics')">
           <IconFont name="location" size="12" />
           <span>{{ order.deliverySnippet }}</span>
         </div>
@@ -69,10 +69,10 @@
         </div>
 
         <div class="order-actions">
-          <button class="btn-ghost" v-for="action in order.actions" :key="action">
+          <button class="btn-ghost" v-for="action in order.actions" :key="action" @click.stop="handleAction(action, order)">
             {{ action }}
           </button>
-          <button v-if="order.primary" class="btn-primary">{{ order.primary }}</button>
+          <button v-if="order.primary" class="btn-primary" @click.stop="handleAction(order.primary, order)">{{ order.primary }}</button>
         </div>
       </div>
     </div>
@@ -88,6 +88,19 @@ const router = useRouter()
 const searchQuery = ref('')
 const goBack = () => router.back()
 const goDetail = (id) => router.push(`/order/${id}`)
+
+const handleAction = (action, order) => {
+  switch (action) {
+    case '去支付': router.push('/pay-result'); break
+    case '查看物流': router.push('/logistics'); break
+    case '确认收货': router.push(`/order/${order.id}`); break
+    case '评价晒单': router.push(`/order/${order.id}`); break
+    case '再来一单': router.push('/'); break
+    case '申请售后': // fall through
+    case '退换/售后': router.push('/refund'); break
+    default: router.push(`/order/${order.id}`)
+  }
+}
 
 const tabs = [
   { key: 'all', label: '全部' },

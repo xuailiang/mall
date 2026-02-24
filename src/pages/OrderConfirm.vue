@@ -407,6 +407,9 @@ const submitOrder = async () => {
   try {
     await new Promise((resolve) => setTimeout(resolve, 900))
     showToast.success('订单提交成功，正在跳转支付')
+    setTimeout(() => {
+      router.replace({ path: '/pay-result', query: { amount: payable.value.toFixed(2) } })
+    }, 800)
   } finally {
     submitting.value = false
   }

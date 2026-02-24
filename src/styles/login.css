@@ -1,0 +1,230 @@
+/* ════════════════════════════════════
+   Login Page – JD Style
+   ════════════════════════════════════ */
+.login-page {
+    background: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ── Header ──────────────────────────── */
+.login-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: calc(12px + env(safe-area-inset-top)) 16px 12px;
+}
+
+.back-icon {
+    font-size: 20px;
+    color: #333;
+}
+
+.help-text {
+    font-size: 14px;
+    color: #666;
+}
+
+/* ── Main Form ───────────────────────── */
+.login-main {
+    padding: 40px 30px;
+    flex: 1;
+}
+
+.login-title {
+    font-size: 24px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 40px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+    transition: border-color 0.3s;
+}
+
+.input-group:focus-within {
+    border-bottom-color: #f10000;
+}
+
+.country-code {
+    font-size: 16px;
+    color: #333;
+    padding-right: 15px;
+    border-right: 1px solid #ddd;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.clean-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    height: 24px;
+    background: transparent;
+}
+
+.clean-input::placeholder {
+    color: #ccc;
+}
+
+.clear-icon {
+    color: #ccc;
+    padding: 4px;
+}
+
+.get-code-btn {
+    background: none;
+    border: none;
+    color: #333;
+    font-size: 14px;
+    padding-left: 15px;
+    border-left: 1px solid #eee;
+}
+
+.get-code-btn:disabled {
+    color: #ccc;
+}
+
+/* ── Agreements & Actions ────────────── */
+.agreements {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+    color: #999;
+    margin-top: 10px;
+    line-height: 1.5;
+}
+
+.agreements input[type="checkbox"] {
+    margin-top: 2px;
+    accent-color: #f10000;
+}
+
+.agreements a {
+    color: #1a73e8;
+    text-decoration: none;
+}
+
+.submit-btn {
+    background: linear-gradient(90deg, #f10000, #ff4f18);
+    color: #fff;
+    border: none;
+    border-radius: 25px;
+    height: 50px;
+    font-size: 16px;
+    font-weight: 500;
+    margin-top: 20px;
+    transition: opacity 0.3s;
+}
+
+.submit-btn.disabled {
+    opacity: 0.4;
+}
+
+.login-links {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #666;
+}
+
+/* ── Footer / Social Login ───────────── */
+.login-footer {
+    padding: 40px 30px calc(40px + env(safe-area-inset-bottom));
+}
+
+.divider-text {
+    text-align: center;
+    font-size: 12px;
+    color: #ccc;
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.divider-text::before,
+.divider-text::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 30%;
+    height: 1px;
+    background: #eee;
+}
+
+.divider-text::before {
+    left: 0;
+}
+
+.divider-text::after {
+    right: 0;
+}
+
+.social-login {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+}
+
+.social-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #666;
+}
+
+.icon-inner {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.wechat .icon-inner {
+    background: #09bb07;
+}
+
+.apple .icon-inner {
+    background: #000;
+}
+
+/* ── Toast Mask ──────────────────────── */
+.toast-mask {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.toast-content {
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+}

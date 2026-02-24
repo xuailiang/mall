@@ -1,11 +1,16 @@
 import { defineStore } from 'pinia'
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 
 export const useCartStore = defineStore('cart', () => {
     // State
-    const stores = ref([])
+    const savedCart = localStorage.getItem('mall-cart')
+    const stores = ref(savedCart ? JSON.parse(savedCart) : [])
     const isEditMode = ref(false)
-    const initialized = ref(false)
+
+    // Persistence
+    watch(stores, (newVal) => {
+        localStorage.setItem('mall-cart', JSON.stringify(newVal))
+    }, { deep: true })
 
     // Getters
     const allItems = computed(() => stores.value.flatMap((s) => s.items))
@@ -123,7 +128,6 @@ export const useCartStore = defineStore('cart', () => {
     return {
         stores,
         isEditMode,
-        initialized,
         allItems,
         validItems,
         hasItems,

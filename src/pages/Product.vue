@@ -844,6 +844,46 @@ const priceStyleMap = {
     sidePill: '限时特价',
     sideTitle: '明日恢复',
     sideSub: ''
+  },
+  gift: {
+    type: 'gift',
+    label: '赠品价',
+    showOld: true,
+    showCountdown: false,
+    tip: '买1赠1 · 赠品价值 ¥49',
+    sidePill: '赠品已配',
+    sideTitle: '下单即送',
+    sideSub: '赠滤网 + 清洁刷'
+  },
+  coupon: {
+    type: 'coupon',
+    label: '券后价',
+    showOld: true,
+    showCountdown: false,
+    tip: '领券减30 · 可叠加店铺券',
+    sidePill: '领券立减',
+    sideTitle: '今日可省',
+    sideSub: '预计省 ¥30'
+  },
+  member: {
+    type: 'member',
+    label: '会员价',
+    showOld: true,
+    showCountdown: false,
+    tip: 'PLUS会员专享 · 开通立减',
+    sidePill: '会员专享',
+    sideTitle: '开通再减',
+    sideSub: '预计再省 ¥20'
+  },
+  newbie: {
+    type: 'newbie',
+    label: '新人专享',
+    showOld: true,
+    showCountdown: false,
+    tip: '新客首单立减 · 下单再送运费险',
+    sidePill: '新客福利',
+    sideTitle: '首单立减 ¥20',
+    sideSub: '仅限新人首单'
   }
 }
 

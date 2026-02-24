@@ -302,6 +302,22 @@
   background: linear-gradient(120deg, #ff4f5a 0%, #ff8f70 60%, #ff4f5a 100%);
 }
 
+.price-bar--gift {
+  background: linear-gradient(120deg, #ff6b3d 0%, #ff9b42 58%, #ff5a30 100%);
+}
+
+.price-bar--coupon {
+  background: linear-gradient(120deg, #ff4d78 0%, #ff6b8f 55%, #ff4f5a 100%);
+}
+
+.price-bar--member {
+  background: linear-gradient(120deg, #7f1e1e 0%, #b54123 52%, #8b251f 100%);
+}
+
+.price-bar--newbie {
+  background: linear-gradient(120deg, #ff4b5f 0%, #ff6f91 54%, #ff4d78 100%);
+}
+
 .price-bar--base {
   background: #ffffff;
   color: #1a1a1a;
@@ -312,10 +328,35 @@
   color: #9a9a9a;
 }
 
+.price-bar--member .price-old {
+  color: rgba(255, 226, 173, 0.78);
+}
+
 .price-bar--base .price-tag {
   background: #fff3f0;
   border-color: #ffd1c3;
   color: #ff3b30;
+}
+
+.price-bar--gift .price-tag {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.price-bar--coupon .price-tag {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.price-bar--member .price-tag {
+  background: rgba(255, 233, 196, 0.2);
+  border-color: rgba(255, 219, 165, 0.45);
+  color: #ffe2ad;
+}
+
+.price-bar--newbie .price-tag {
+  background: rgba(255, 243, 246, 0.2);
+  border-color: rgba(255, 218, 226, 0.45);
 }
 
 .price-bar--base .cd-box {
@@ -323,8 +364,17 @@
   color: #fff;
 }
 
+.price-bar--newbie .cd-box {
+  background: #fff;
+  color: #ff3b30;
+}
+
 .price-bar--base::before {
   background: radial-gradient(circle, rgba(255, 106, 0, 0.12) 0%, transparent 60%);
+}
+
+.price-bar--member::before {
+  background: radial-gradient(circle, rgba(255, 210, 146, 0.28) 0%, transparent 64%);
 }
 
 .price-left,
@@ -359,6 +409,23 @@
 .price-bar--base .price-tip {
   color: #ff3b30;
   opacity: 1;
+}
+
+.price-bar--gift .price-tip {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.price-bar--coupon .price-tip {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.price-bar--member .price-tip {
+  color: #ffe1ab;
+  opacity: 1;
+}
+
+.price-bar--newbie .price-tip {
+  color: #ffe7ef;
 }
 
 .price-main {
@@ -411,9 +478,52 @@
   color: #ff3b30;
 }
 
+.price-bar--gift .price-right-pill {
+  background: rgba(255, 255, 255, 0.24);
+  border-color: rgba(255, 255, 255, 0.38);
+}
+
+.price-bar--coupon .price-right-pill {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.36);
+}
+
+.price-bar--member .price-right-pill {
+  background: rgba(255, 219, 165, 0.2);
+  border-color: rgba(255, 213, 151, 0.45);
+  color: #ffe2ad;
+}
+
+.price-bar--newbie .price-right-pill {
+  background: rgba(255, 239, 244, 0.2);
+  border-color: rgba(255, 214, 224, 0.45);
+  color: #ffe8f0;
+}
+
 .price-bar--base .pill-dot {
   background: #ff3b30;
   box-shadow: 0 0 6px rgba(255, 59, 48, 0.5);
+}
+
+.price-bar--gift .pill-dot,
+.price-bar--coupon .pill-dot,
+.price-bar--newbie .pill-dot {
+  background: #fff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.7);
+}
+
+.price-bar--newbie .price-right-main {
+  color: #fff5f8;
+}
+
+.price-bar--newbie .price-right-sub {
+  color: rgba(255, 242, 246, 0.9);
+  opacity: 1;
+}
+
+.price-bar--member .pill-dot {
+  background: #ffe2ad;
+  box-shadow: 0 0 6px rgba(255, 226, 173, 0.8);
 }
 
 .price-right-main {

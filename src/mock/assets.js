@@ -9,5 +9,6 @@ export const imagePool = {
   cleaning: seed('order6'),
   detail1: seed('detail1'),
   detail2: seed('detail2'),
-  detail3: seed('detail3')
+  detail3: seed('detail3'),
+  banner: seed('banner', 800, 240)
 }

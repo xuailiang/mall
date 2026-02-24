@@ -1,9 +1,9 @@
 <template>
   <div class="home-page">
     <header class="home-header">
-      <div class="home-search">
+      <div class="home-search" @click="router.push('/search')">
         <span class="home-search-icon">≡</span>
-        <input v-model="search" placeholder="三只松鼠坚果礼盒" />
+        <input v-model="search" placeholder="三只松鼠坚果礼盒" readonly @click.stop="router.push('/search')" />
       </div>
       <div class="home-avatar">👤</div>
     </header>
@@ -130,6 +130,8 @@ const promoPatterns = {
   direct: { type: 'direct', label: '直降', short: '直降80', extra: '今日价' },
   gift: { type: 'gift', label: '买赠', short: '买1赠1', extra: '赠品丰富' },
   coupon: { type: 'coupon', label: '券', short: '领券减15', extra: '店铺券' },
+  member: { type: 'member', label: '会员', short: 'PLUS会员价', extra: '专享权益' },
+  newbie: { type: 'newbie', label: '新人', short: '首单立减', extra: '新客福利' },
   base: { type: 'base', label: '日常', short: '日常好价', extra: '' }
 }
 

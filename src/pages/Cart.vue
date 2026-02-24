@@ -61,23 +61,29 @@
                   <span v-if="hiddenPromoCount(item) > 0" class="promo-tag promo-more">+{{ hiddenPromoCount(item) }}</span>
                 </div>
                 <div class="cart-price-line">
-                  <span class="cart-price">¥{{ item.price.toFixed(2) }}</span>
+                  <span class="cart-price">
+                    ¥{{ Math.floor(item.price) }}.<small>{{ (item.price % 1).toFixed(2).substring(2) }}</small>
+                  </span>
                   <span class="price-drop" v-if="item.priceDrop">降¥{{ item.priceDrop }}</span>
-                  <span class="cart-est">到手 ¥{{ getEstimatedPrice(item).toFixed(2) }}</span>
-                </div>
-                <div class="cart-final" v-if="item.directSave > 0">
-                  已优惠 ¥{{ ((item.directSave || 0) * item.qty).toFixed(2) }}
                 </div>
               </div>
-              <div class="cart-right">
+              <div class="cart-right-wrapper">
+                <div class="cart-est-container">
+                  <span class="cart-est">到手 ¥{{ getEstimatedPrice(item).toFixed(2) }}</span>
+                  <div class="cart-final" v-if="item.directSave > 0">
+                    已优惠 ¥{{ ((item.directSave || 0) * item.qty).toFixed(2) }}
+                  </div>
+                </div>
+                <div class="cart-right">
                 <div class="qty-box">
                   <button class="qty-btn" :disabled="item.qty <= 1" @click="changeQty(item, -1)">-</button>
                   <input class="qty-input" type="number" :value="item.qty" @input="e => setQty(item, e.target.value)" />
                   <button class="qty-btn" @click="changeQty(item, 1)">+</button>
                 </div>
-                <div class="cart-actions-mini">收藏</div>
+                </div>
               </div>
             </div>
+            <button class="cart-swipe-delete" @click="confirmDelete(item)">删除</button>
             <button class="cart-swipe-delete" @click="confirmDelete(item)">删除</button>
           </div>
         </div>
@@ -133,7 +139,7 @@
       
       <div class="footer-center" v-if="!isEditMode">
         <div class="cart-total">
-          总计: <span>¥{{ finalTotal.toFixed(2) }}</span>
+          总计: <span>¥{{ Math.floor(finalTotal) }}.<small>{{ (finalTotal % 1).toFixed(2).substring(2) }}</small></span>
         </div>
         <div class="savings-badge" v-if="discountTotal > 0">已省 ¥{{ discountTotal.toFixed(2) }}</div>
       </div>
@@ -372,7 +378,7 @@ onMounted(async () => {
   const data = await getProducts()
   recommend.value = data
   
-  if (!cartStore.hasItems && !cartStore.initialized) {
+  if (cartStore.stores.length === 0) {
     cartStore.initCart([
       {
         name: '京东服务自营旗舰店',
@@ -393,7 +399,6 @@ onMounted(async () => {
         ]
       }
     ])
-    cartStore.initialized = true
   }
 })
 

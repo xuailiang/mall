@@ -1230,6 +1230,14 @@
   background: linear-gradient(90deg, #ff4d6d, #ff7aa2);
 }
 
+.promo-ribbon.member {
+  background: linear-gradient(90deg, #a33a24, #cf8a4a);
+}
+
+.promo-ribbon.newbie {
+  background: linear-gradient(90deg, #ff4b5f, #ff6f91);
+}
+
 .promo-ribbon.bundle {
   background: linear-gradient(90deg, #ff9f1a, #ffb347);
 }
@@ -1316,6 +1324,18 @@
 .promo-pill.coupon {
   background: #fff2f7;
   border-color: #ffc1d6;
+  color: #ff4d6d;
+}
+
+.promo-pill.member {
+  background: #fff6e9;
+  border-color: #f2d9b7;
+  color: #a25a22;
+}
+
+.promo-pill.newbie {
+  background: #fff2f7;
+  border-color: #ffc7d8;
   color: #ff4d6d;
 }
 

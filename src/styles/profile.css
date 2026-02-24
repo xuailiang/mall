@@ -242,3 +242,98 @@
     color: #fa2c19;
     margin-bottom: 8px;
 }
+
+/* Logistics Card Styles */
+.logistics-card {
+    border-top: 1px solid #f5f5f5;
+    margin-top: 10px;
+    padding-top: 12px;
+}
+
+.logistics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.logistics-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #333;
+}
+
+.logistics-time {
+    font-size: 11px;
+    color: #999;
+}
+
+.logistics-body {
+    display: flex;
+    align-items: center;
+    background: #fdfdfd;
+    padding: 8px;
+    border-radius: 8px;
+    gap: 10px;
+}
+
+.logistics-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.logistics-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.logistics-status {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.logistics-status.highlight {
+    color: #00c250;
+    /* Green color suitable for shipping/delivery */
+}
+
+.logistics-desc {
+    font-size: 11px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Promo Banner */
+.profile-banner-wrap {
+    margin-bottom: 12px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.profile-banner {
+    width: 100%;
+    display: block;
+    border-radius: 12px;
+}
+
+/* Guess You Like / Waterfall Section */
+.profile-guess {
+    margin-top: 16px;
+    padding-bottom: 24px;
+}
+
+.profile-guess .guess-title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 12px;
+}

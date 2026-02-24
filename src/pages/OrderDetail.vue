@@ -23,7 +23,7 @@
     </div>
 
     <div class="page">
-      <section class="detail-card delivery-track-card" v-if="order.deliverySnippet">
+      <section class="detail-card delivery-track-card" v-if="order.deliverySnippet" @click="router.push('/logistics')">
         <div class="track-icon">
           <IconFont name="location" size="14" />
         </div>
@@ -61,7 +61,7 @@
           </div>
         </div>
         <div class="order-actions-row">
-          <button class="btn-ghost">申请售后</button>
+          <button class="btn-ghost" @click.stop="router.push('/refund')">申请售后</button>
         </div>
       </section>
 
@@ -107,17 +107,17 @@
     <div class="order-footer">
       <div v-if="order.id === 'o1'" class="footer-actions">
         <button class="btn-ghost">取消订单</button>
-        <button class="btn-primary">去支付</button>
+        <button class="btn-primary" @click="router.push('/pay-result')">去支付</button>
       </div>
       <div v-else-if="order.status === 'done'" class="footer-actions">
-        <button class="btn-ghost" @click="router.push('/order/o4')">申请售后</button>
+        <button class="btn-ghost" @click="router.push('/refund')">申请售后</button>
         <button class="btn-ghost">评价晒单</button>
-        <button class="btn-primary">再次购买</button>
+        <button class="btn-primary" @click="router.push('/')">再次购买</button>
       </div>
       <div v-else class="footer-actions">
-        <button class="btn-ghost">查看物流</button>
+        <button class="btn-ghost" @click="router.push('/logistics')">查看物流</button>
         <button class="btn-ghost">删除订单</button>
-        <button class="btn-primary">再次购买</button>
+        <button class="btn-primary" @click="router.push('/')">再次购买</button>
       </div>
     </div>
   </div>
