@@ -20,7 +20,7 @@
     </header>
 
     <div class="hero">
-      <nut-swiper :auto-play="3500" loop>
+      <nut-swiper :auto-play="3500" loop @change="onHeroChange">
         <nut-swiper-item v-for="(item, idx) in featureCards" :key="idx">
           <img
             class="hero-image"
@@ -32,6 +32,24 @@
           />
         </nut-swiper-item>
       </nut-swiper>
+      <div class="hero-media-tabs">
+        <button
+          class="hero-media-btn"
+          :class="{ active: heroMediaTab === 'image' }"
+          @click="heroMediaTab = 'image'"
+        >
+          图集
+        </button>
+        <button
+          v-if="hasVideo"
+          class="hero-media-btn"
+          :class="{ active: heroMediaTab === 'video' }"
+          @click="openVideo"
+        >
+          视频
+        </button>
+      </div>
+      <div class="hero-page-indicator">{{ heroIndex + 1 }}/{{ featureCards.length || 1 }}</div>
       <div class="hero-mask"></div>
     </div>
 
@@ -41,21 +59,23 @@
         <span v-if="priceStyle.label" class="price-tag">{{ priceStyle.label }}</span>
         <span class="price-old" v-if="priceStyle.showOld">¥{{ currentProduct.original }}</span>
       </div>
-      <div v-if="priceStyle.showCountdown" class="price-right">
-        <div class="price-countdown-title">距离结束还剩</div>
-        <div class="price-countdown">
-          <span class="cd-box">08</span>:
-          <span class="cd-box">15</span>:
-          <span class="cd-box">36</span>
+      <div class="price-right-shell">
+        <div v-if="priceStyle.showCountdown" class="price-right">
+          <div class="price-countdown-title">距离结束还剩</div>
+          <div class="price-countdown">
+            <span class="cd-box">08</span>:
+            <span class="cd-box">15</span>:
+            <span class="cd-box">36</span>
+          </div>
         </div>
-      </div>
-      <div v-else class="price-right price-right-info">
-        <div class="price-right-pill">
-          <span class="pill-dot"></span>
-          <span>{{ priceStyle.sidePill }}</span>
+        <div v-else class="price-right price-right-info">
+          <div class="price-right-pill">
+            <span class="pill-dot"></span>
+            <span>{{ priceStyle.sidePill }}</span>
+          </div>
+          <div class="price-right-main">{{ priceStyle.sideTitle }}</div>
+          <div class="price-right-sub">{{ priceStyle.sideSub }}</div>
         </div>
-        <div class="price-right-main">{{ priceStyle.sideTitle }}</div>
-        <div class="price-right-sub">{{ priceStyle.sideSub }}</div>
       </div>
       <div v-if="priceStyle.tip" class="price-tip">{{ priceStyle.tip }}</div>
     </section>
@@ -73,18 +93,38 @@
         <div class="title-text">{{ currentProduct.title }}</div>
         <button class="share-btn share-top" @click="shareProduct">分享</button>
       </div>
-      <div class="title-sub">已售 1 万+ · 好评率 99%</div>
+      <div class="title-sub">{{ salesSummary }}</div>
       <div class="title-actions">
-        <span class="chip chip-outline">京东自营</span>
-        <span class="chip chip-dark">严选</span>
+        <span
+          v-for="(tag, idx) in productTags.slice(0, 2)"
+          :key="`${tag}-${idx}`"
+          class="chip"
+          :class="idx === 0 ? 'chip-outline' : 'chip-dark'"
+        >
+          {{ tag }}
+        </span>
       </div>
       <div class="tag-row">
-        <span class="tag-lite">免费上门退换</span>
-        <span class="tag-lite">闪电退款</span>
+        <span
+          v-for="item in serviceBadges.slice(0, 2)"
+          :key="item"
+          class="tag-lite"
+        >
+          {{ item }}
+        </span>
+      </div>
+      <div v-if="sellingPoints.length" class="selling-points">
+        <span
+          v-for="item in sellingPoints.slice(0, 2)"
+          :key="item"
+          class="point-item"
+        >
+          {{ item }}
+        </span>
       </div>
     </section>
 
-      <section class="card-list">
+      <section class="decision-card">
         <div class="cell-row" @click="openSku('cart')">
           <span class="cell-tit">选择</span>
           <div class="cell-val">已选：{{ selectedSize }} {{ selectedColor }} {{ skuCount }}件</div>
@@ -111,7 +151,7 @@
       </div>
       <div class="cell-row">
         <span class="cell-tit">服务</span>
-        <div class="cell-val">免费上门退换 · 闪电退款 · 7天无理由</div>
+        <div class="cell-val">{{ serviceBadges.join(' · ') }}</div>
         <div class="cell-more">···</div>
       </div>
     </section>
@@ -125,11 +165,11 @@
     <section id="reviews" class="section review-section">
       <div class="section-title">
         <span>商品评价</span>
-        <span class="hint">{{ positiveRate }}% 好评 · {{ reviews.length }}条</span>
+        <span class="hint">{{ reviewDisplayPositiveRate }}% 好评 · {{ reviewDisplayCountText }}</span>
       </div>
       <div class="review-summary">
         <div class="review-score-main">
-          <span class="review-score-val">{{ reviewAverage.toFixed(1) }}</span>
+          <span class="review-score-val">{{ reviewDisplayScore.toFixed(1) }}</span>
           <span class="review-score-label">综合评分</span>
         </div>
         <div class="review-score-bars">
@@ -219,11 +259,17 @@
         <span>为你推荐</span>
         <span class="hint">猜你喜欢</span>
       </div>
-      <div class="recommend-grid">
-        <div class="recommend-card" v-for="item in recommendList" :key="item.id">
+      <div class="detail-recommend-grid">
+        <div class="detail-recommend-card" v-for="item in recommendList" :key="item.id">
           <img :src="item.image" :alt="item.title" />
-          <div class="recommend-title">{{ item.title }}</div>
-          <div class="recommend-price">¥{{ item.price }}</div>
+          <div class="detail-recommend-body">
+            <div class="detail-recommend-title">{{ item.title }}</div>
+            <div class="detail-recommend-meta">
+              <span v-if="item.badge" class="detail-recommend-badge">{{ item.badge }}</span>
+              <span class="detail-recommend-old">¥{{ item.original }}</span>
+            </div>
+            <div class="detail-recommend-price">¥{{ item.price }}</div>
+          </div>
         </div>
       </div>
     </section>
@@ -260,7 +306,7 @@
     </div>
 
     <nut-popup v-model:visible="showVideo" position="bottom" round>
-      <div class="popup">
+      <div class="popup product-popup">
         <div class="popup-header">
           <span>商品视频</span>
           <nut-icon name="close" @click="showVideo = false" />
@@ -270,7 +316,7 @@
     </nut-popup>
 
     <nut-popup v-model:visible="showCoupon" position="bottom" round>
-      <div class="popup">
+      <div class="popup product-popup">
         <div class="popup-header">
           <span>可用优惠</span>
           <button class="btn-outline btn-claim-all">一键领取</button>
@@ -302,7 +348,7 @@
     </nut-popup>
 
     <nut-popup v-model:visible="showAddress" position="bottom" round>
-      <div class="popup">
+      <div class="popup product-popup">
         <div class="popup-header">
           <span>配送至</span>
           <nut-icon name="close" @click="showAddress = false" />
@@ -325,7 +371,7 @@
     </nut-popup>
 
     <nut-popup v-model:visible="showSku" position="bottom" round :overlay="true">
-      <div class="sku-panel">
+      <div class="sku-panel product-sku-panel">
         <div class="popup-header">
           <span>选择规格</span>
           <nut-icon name="close" @click="showSku = false" />
@@ -392,7 +438,7 @@
     </nut-popup>
 
     <nut-popup v-model:visible="showReviewEditor" position="bottom" round>
-      <div class="popup review-editor-popup">
+      <div class="popup product-popup review-editor-popup">
         <div class="popup-header">
           <span>发布商品评价</span>
           <nut-icon name="close" @click="showReviewEditor = false" />
@@ -464,6 +510,7 @@ const route = useRoute()
 const router = useRouter()
 const cartStore = useCartStore()
 const REVIEW_STORAGE_PREFIX = 'mall_product_reviews_v1_'
+const NAV_HEIGHT = 56
 
 const currentProduct = ref({})
 
@@ -482,12 +529,25 @@ const featureCards = computed(() => {
 const isScrolled = ref(false)
 const navAlpha = ref(0)
 const activeTab = ref('product')
-const handleScroll = () => {
+const heroIndex = ref(0)
+const heroMediaTab = ref('image')
+let scrollTicking = false
+
+const syncScrollState = () => {
   const y = window.scrollY
   const ratio = Math.min(Math.max((y - 10) / 80, 0), 1)
   navAlpha.value = ratio
   isScrolled.value = ratio > 0.6
   updateActiveTab()
+}
+
+const handleScroll = () => {
+  if (scrollTicking) return
+  scrollTicking = true
+  window.requestAnimationFrame(() => {
+    syncScrollState()
+    scrollTicking = false
+  })
 }
 
 const showVideo = ref(false)
@@ -565,6 +625,17 @@ const currentSku = computed(() => skuMap[skuKey.value] ?? { price: '0.00', stock
 const currentPrice = computed(() => currentSku.value.price)
 const currentStock = computed(() => currentSku.value.stock)
 const cartCount = computed(() => cartStore.allItems.length)
+const hasVideo = computed(() => {
+  if (currentProduct.value.mediaTabs && typeof currentProduct.value.mediaTabs.hasVideo === 'boolean') {
+    return currentProduct.value.mediaTabs.hasVideo
+  }
+  return Boolean(currentProduct.value.video)
+})
+const productTags = computed(() => currentProduct.value.productTags || ['京东自营', '严选'])
+const sellingPoints = computed(() => currentProduct.value.sellingPoints || ['官方正品', '次日达'])
+const serviceBadges = computed(() => currentProduct.value.serviceBadges || ['免费上门退换', '闪电退款', '7天无理由'])
+const salesSummary = computed(() => currentProduct.value.salesSummary || '已售 1 万+ · 好评率 99%')
+const reviewSeedSummary = computed(() => currentProduct.value.reviewSummary || {})
 
 const isSizeDisabled = (size) => {
   return colors.every((color) => (skuMap[`${size}|${color}`]?.stock ?? 0) === 0)
@@ -657,6 +728,35 @@ const positiveRate = computed(() => {
   return Math.round((positive / reviews.value.length) * 100)
 })
 
+const formatReviewCount = (count) => {
+  const safeCount = Number(count || 0)
+  if (safeCount >= 10000) {
+    const w = safeCount / 10000
+    return Number.isInteger(w) ? `${w}万+` : `${w.toFixed(1)}万+`
+  }
+  return `${safeCount}`
+}
+
+const reviewDisplayScore = computed(() => {
+  const score = Number(reviewSeedSummary.value.score)
+  if (score > 0) return score
+  return Number(reviewAverage.value.toFixed(1))
+})
+
+const reviewDisplayPositiveRate = computed(() => {
+  const rate = Number(reviewSeedSummary.value.positiveRate)
+  if (rate > 0) return rate
+  return positiveRate.value
+})
+
+const reviewDisplayCount = computed(() => {
+  const count = Number(reviewSeedSummary.value.count)
+  if (count > 0) return count
+  return reviews.value.length
+})
+
+const reviewDisplayCountText = computed(() => `${formatReviewCount(reviewDisplayCount.value)}条评价`)
+
 const reviewFilterOptions = computed(() => {
   const total = reviews.value.length
   const withImage = reviews.value.filter((item) => item.images?.length).length
@@ -722,8 +822,19 @@ const markHeroLoaded = (idx) => {
   heroLoaded.value[idx] = true
 }
 
+const onHeroChange = (idx) => {
+  heroIndex.value = Number(idx || 0)
+  heroMediaTab.value = 'image'
+}
+
 const markDetailLoaded = (idx) => {
   detailLoaded.value[idx] = true
+}
+
+const openVideo = () => {
+  if (!hasVideo.value) return
+  heroMediaTab.value = 'video'
+  showVideo.value = true
 }
 
 const shareProduct = async () => {
@@ -740,7 +851,22 @@ const shareProduct = async () => {
       // ignore cancel
     }
   }
-  window.alert('已复制分享链接')
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(data.url)
+      showToast.success('链接已复制')
+      return
+    }
+    const input = document.createElement('input')
+    input.value = data.url
+    document.body.appendChild(input)
+    input.select()
+    document.execCommand('copy')
+    document.body.removeChild(input)
+    showToast.success('链接已复制')
+  } catch (error) {
+    showToast.text('分享失败，请稍后重试')
+  }
 }
 
 const toggleReviewLike = (item) => {
@@ -831,9 +957,9 @@ const priceStyleMap = {
     showOld: true,
     showCountdown: false,
     tip: '满199减20 · 叠券更省',
-    sidePill: '券后省钱',
+    sidePill: '券后省',
     sideTitle: '今日可省',
-    sideSub: '券后再减 ¥15'
+    sideSub: '再减 ¥15'
   },
   direct: {
     type: 'direct',
@@ -851,9 +977,9 @@ const priceStyleMap = {
     showOld: true,
     showCountdown: false,
     tip: '买1赠1 · 赠品价值 ¥49',
-    sidePill: '赠品已配',
+    sidePill: '赠品',
     sideTitle: '下单即送',
-    sideSub: '赠滤网 + 清洁刷'
+    sideSub: '滤网+清洁刷'
   },
   coupon: {
     type: 'coupon',
@@ -862,8 +988,8 @@ const priceStyleMap = {
     showCountdown: false,
     tip: '领券减30 · 可叠加店铺券',
     sidePill: '领券立减',
-    sideTitle: '今日可省',
-    sideSub: '预计省 ¥30'
+    sideTitle: '预计省 ¥30',
+    sideSub: '可叠加店铺券'
   },
   member: {
     type: 'member',
@@ -873,7 +999,7 @@ const priceStyleMap = {
     tip: 'PLUS会员专享 · 开通立减',
     sidePill: '会员专享',
     sideTitle: '开通再减',
-    sideSub: '预计再省 ¥20'
+    sideSub: '再省 ¥20'
   },
   newbie: {
     type: 'newbie',
@@ -883,7 +1009,7 @@ const priceStyleMap = {
     tip: '新客首单立减 · 下单再送运费险',
     sidePill: '新客福利',
     sideTitle: '首单立减 ¥20',
-    sideSub: '仅限新人首单'
+    sideSub: '仅限首单'
   }
 }
 
@@ -933,14 +1059,14 @@ const goBack = () => {
 const scrollToSection = (id) => {
   const el = document.getElementById(id)
   if (!el) return
-  const top = el.offsetTop - 56
+  const top = el.offsetTop - NAV_HEIGHT
   window.scrollTo({ top, behavior: 'smooth' })
   activeTab.value = id
 }
 
 const updateActiveTab = () => {
   const ids = ['product', 'reviews', 'detail', 'recommend']
-  const offset = 80
+  const offset = NAV_HEIGHT + 16
   for (let i = ids.length - 1; i >= 0; i -= 1) {
     const el = document.getElementById(ids[i])
     if (el && window.scrollY + offset >= el.offsetTop) {
@@ -950,12 +1076,14 @@ const updateActiveTab = () => {
   }
 }
 
-watch(showSku, (val) => {
-  document.body.style.overflow = val || showReviewEditor.value ? 'hidden' : ''
+watch([showSku, showReviewEditor, showCoupon, showAddress, showVideo], (flags) => {
+  document.body.style.overflow = flags.some(Boolean) ? 'hidden' : ''
 })
 
-watch(showReviewEditor, (val) => {
-  document.body.style.overflow = val || showSku.value ? 'hidden' : ''
+watch(showVideo, (visible) => {
+  if (!visible) {
+    heroMediaTab.value = 'image'
+  }
 })
 
 watch(() => route.params.id, async (nextId) => {
@@ -963,14 +1091,16 @@ watch(() => route.params.id, async (nextId) => {
   await loadPageData(nextId)
   window.scrollTo({ top: 0, behavior: 'auto' })
   activeTab.value = 'product'
+  heroIndex.value = 0
+  heroMediaTab.value = 'image'
   reviewFilter.value = 'all'
   resetReviewDraft()
 })
 
 onMounted(async () => {
-  handleScroll()
   window.addEventListener('scroll', handleScroll, { passive: true })
   await loadPageData(route.params.id)
+  syncScrollState()
 })
 
 onUnmounted(() => {

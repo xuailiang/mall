@@ -19,12 +19,12 @@
     </section>
 
     <section class="order-card store-card">
-      <div class="store-title">JD 京东自营</div>
+      <div class="store-title">{{ snapshotMode ? '已选商品' : 'JD 京东自营' }}</div>
       <div class="item-row">
-        <img class="item-thumb" :src="product.image" :alt="product.title" />
+        <img class="item-thumb" :src="displayProduct.image" :alt="displayTitle" />
         <div class="item-info">
-          <div class="item-title">{{ product.title }}</div>
-          <div class="item-sku">11英寸 星光色 | WLAN版256G</div>
+          <div class="item-title">{{ displayTitle }}</div>
+          <div class="item-sku">{{ displaySku }}</div>
           <div class="item-price">¥{{ unitPrice.toFixed(2) }}</div>
           <div class="item-tags">
             <span class="tag">支持7天无理由退货（防伪签、密封条损毁不支持）</span>
@@ -32,9 +32,9 @@
           </div>
         </div>
         <div class="item-qty">
-          <button class="qty-btn" :disabled="qty <= 1" @click="changeQty(-1)">-</button>
-          <span>{{ qty }}</span>
-          <button class="qty-btn" :disabled="qty >= maxQty" @click="changeQty(1)">+</button>
+          <button class="qty-btn" :disabled="snapshotMode || qty <= 1" @click="changeQty(-1)">-</button>
+          <span>{{ displayQty }}</span>
+          <button class="qty-btn" :disabled="snapshotMode || qty >= maxQty" @click="changeQty(1)">+</button>
         </div>
       </div>
 
@@ -103,6 +103,10 @@
         <span>{{ showDiscountPanel ? '收起' : '展开' }}</span>
       </button>
       <div class="footer-discount-panel" v-if="showDiscountPanel">
+        <div class="discount-item" v-if="baseDiscount > 0">
+          <span>购物车已优惠</span>
+          <span>-¥{{ baseDiscount.toFixed(2) }}</span>
+        </div>
         <div class="discount-item">
           <span>优惠券</span>
           <span>-¥{{ couponDiscount.toFixed(2) }}</span>
@@ -119,7 +123,7 @@
       <div class="order-footer">
         <div>
           <div class="footer-price">¥{{ payable.toFixed(2) }}</div>
-          <div class="footer-sub">共 {{ qty }} 件商品</div>
+          <div class="footer-sub">共 {{ displayQty }} 件商品</div>
         </div>
         <button class="pay-btn" :disabled="!canSubmit || submitting" @click="submitOrder">
           {{ submitting ? '支付提交中...' : '在线支付' }}
@@ -266,15 +270,35 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { showToast } from '@nutui/nutui'
 import { products } from '../mock/products'
 
 const router = useRouter()
-const product = products[0]
+const route = useRoute()
+const defaultProduct = products[0]
+const checkoutSnapshot = ref(null)
+
+if (route.query.from === 'cart') {
+  try {
+    const raw = sessionStorage.getItem('mall-checkout-snapshot')
+    if (raw) checkoutSnapshot.value = JSON.parse(raw)
+  } catch (error) {
+    checkoutSnapshot.value = null
+  }
+}
+
+const snapshotMode = computed(() => Array.isArray(checkoutSnapshot.value?.items) && checkoutSnapshot.value.items.length > 0)
+const snapshotItems = computed(() => checkoutSnapshot.value?.items || [])
+const displayProduct = computed(() => snapshotItems.value[0] || defaultProduct)
+const snapshotExtraCount = computed(() => Math.max(snapshotItems.value.length - 1, 0))
+const displayTitle = computed(() =>
+  snapshotExtraCount.value > 0 ? `${displayProduct.value.title} 等${snapshotExtraCount.value}件` : displayProduct.value.title
+)
+const displaySku = computed(() => displayProduct.value.sku || '默认规格')
 
 const qty = ref(1)
-const maxQty = product.stock || 99
+const maxQty = computed(() => displayProduct.value.stock || 99)
 const showAddress = ref(false)
 const showDelivery = ref(false)
 const showSchedule = ref(false)
@@ -329,8 +353,20 @@ const coupons = [
   { id: 'c3', value: 80, threshold: 899, title: '满899减80', desc: '限时活动券' }
 ]
 
-const unitPrice = computed(() => Number(product.price || 0))
-const subtotal = computed(() => unitPrice.value * qty.value)
+const snapshotSummary = computed(() => checkoutSnapshot.value?.summary || null)
+const displayQty = computed(() => {
+  if (snapshotMode.value) {
+    return snapshotSummary.value?.selectedSkuCount || snapshotItems.value.reduce((sum, item) => sum + (item.qty || 0), 0) || 1
+  }
+  return qty.value
+})
+const unitPrice = computed(() => Number(displayProduct.value.price || 0))
+const subtotal = computed(() => {
+  if (snapshotMode.value && snapshotSummary.value?.subtotal != null) {
+    return Number(snapshotSummary.value.subtotal) || 0
+  }
+  return unitPrice.value * qty.value
+})
 const activeAddress = computed(() => addresses.find((item) => item.id === selectedAddressId.value))
 const activeDelivery = computed(() => deliveries.find((item) => item.id === selectedDeliveryId.value))
 const activeSchedule = computed(() => schedules.find((item) => item.id === selectedScheduleId.value))
@@ -339,21 +375,25 @@ const activePayment = computed(() => paymentMethods.find((item) => item.id === s
 const activeCoupon = computed(() => coupons.find((item) => item.id === selectedCouponId.value))
 const activeGift = computed(() => null)
 const shippingFee = computed(() => Number(activeDelivery.value?.fee || 0))
+const baseDiscount = computed(() => (snapshotMode.value ? Number(snapshotSummary.value?.discountTotal || 0) : 0))
 const couponDiscount = computed(() => {
   if (!activeCoupon.value) return 0
   return subtotal.value >= activeCoupon.value.threshold ? activeCoupon.value.value : 0
 })
-const activityDiscount = computed(() => (subtotal.value >= 399 ? 10 : 0))
+const activityDiscount = computed(() => (snapshotMode.value ? 0 : subtotal.value >= 399 ? 10 : 0))
 const beanDiscount = computed(() => (useBeans.value && subtotal.value >= 500 ? 1.84 : 0))
-const totalDiscount = computed(() => couponDiscount.value + activityDiscount.value + beanDiscount.value + (activeGift.value?.value || 0))
+const totalDiscount = computed(() => {
+  return baseDiscount.value + couponDiscount.value + activityDiscount.value + beanDiscount.value + (activeGift.value?.value || 0)
+})
 const payable = computed(() => Math.max(subtotal.value + shippingFee.value - totalDiscount.value, 0))
-const canSubmit = computed(() => Boolean(activeAddress.value) && Boolean(activePayment.value) && qty.value > 0)
+const canSubmit = computed(() => Boolean(activeAddress.value) && Boolean(activePayment.value) && displayQty.value > 0)
 
 const isCouponAvailable = (coupon) => subtotal.value >= coupon.threshold
 
 const changeQty = (delta) => {
+  if (snapshotMode.value) return
   const next = qty.value + delta
-  qty.value = Math.max(1, Math.min(maxQty, next))
+  qty.value = Math.max(1, Math.min(maxQty.value, next))
 }
 
 const chooseAddress = (id) => {

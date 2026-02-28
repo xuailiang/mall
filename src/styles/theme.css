@@ -11,6 +11,7 @@
   --jd-muted: #9a9a9a;
   --jd-border: #ededed;
   --jd-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  --jd-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.06);
   --jd-radius-lg: 18px;
   --jd-radius-md: 12px;
   --jd-radius-sm: 8px;
@@ -25,6 +26,10 @@
   --jd-font-md: 16px;
   --jd-font-lg: 18px;
   --jd-font-xl: 22px;
+  --jd-duration-fast: 120ms;
+  --jd-duration-normal: 220ms;
+  --jd-duration-slow: 280ms;
+  --jd-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
   --nut-primary-color: var(--jd-red);
   --nut-primary-color-end: var(--jd-orange);

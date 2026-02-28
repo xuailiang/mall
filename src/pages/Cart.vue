@@ -1,5 +1,5 @@
 <template>
-  <div class="cart-page">
+  <div class="cart-page v2">
     <header class="cart-header">
       <button class="nav-back" @click="goBack">‹</button>
       <div class="cart-title">购物车({{ validItems.length }})</div>
@@ -7,24 +7,22 @@
     </header>
 
     <div class="cart-address" @click="showAddress = true">
-      <span>📍 {{ currentAddress }}</span>
+      <span class="addr-label">配送至 {{ currentAddress }}</span>
       <IconFont name="right" size="12" />
     </div>
 
     <div v-if="hasItems || hasInvalidItems" class="cart-list">
-      <!-- 有效商品 -->
       <div class="cart-store" v-for="store in validStores" :key="store.name">
-        <div class="store-head">
+        <div class="store-head" :class="{ 'edit-mode': isEditMode }">
           <span class="store-tag">自营</span>
           <span class="store-name">{{ store.name }}</span>
           <span class="store-metrics" v-if="!isEditMode">
-            已选{{ getStoreCheckedCount(store) }}件 · ¥{{ getStoreCheckedTotal(store).toFixed(2) }}
+            已选{{ getStoreCheckedCount(store) }}件 · 到手¥{{ getStoreCheckedEstimated(store).toFixed(2) }}
             <em v-if="getStoreDiscount(store) > 0">已省¥{{ getStoreDiscount(store).toFixed(2) }}</em>
           </span>
           <span class="store-coupon" @click="showCouponPopup(store)">领券</span>
         </div>
-        
-        <!-- 满减凑单提示 -->
+
         <div class="store-nudge" v-if="store.fullCut && !isEditMode">
           <template v-if="getStoreCheckedTotal(store) < store.fullCut.threshold">
             <span class="nudge-text">再买 ¥{{ (store.fullCut.threshold - getStoreCheckedTotal(store)).toFixed(2) }} 减 ¥{{ store.fullCut.discount }}</span>
@@ -46,112 +44,75 @@
           >
             <div class="cart-swipe-content">
               <button class="check" :class="{ active: item.checked }" @click="toggleItem(item)"></button>
+
               <div class="cart-img-box">
                 <img class="cart-thumb" :src="item.image" :alt="item.title" @load="item.loaded = true" :class="{ loading: !item.loaded }" />
                 <div v-if="!item.loaded" class="skeleton-img"></div>
               </div>
+
               <div class="cart-info">
                 <div class="cart-title">{{ item.title }}</div>
                 <div class="info-row">
                   <span class="cart-sku">{{ item.sku }}</span>
-                  <span class="saw-and-saw" @click="router.push('/')">看了又看</span>
+                  <span class="saw-and-saw" @click="router.push('/')">看相似</span>
                 </div>
                 <div class="cart-promos">
                   <span class="promo-tag" v-for="tag in visiblePromos(item)" :key="tag">{{ tag }}</span>
                   <span v-if="hiddenPromoCount(item) > 0" class="promo-tag promo-more">+{{ hiddenPromoCount(item) }}</span>
                 </div>
                 <div class="cart-price-line">
-                  <span class="cart-price">
-                    ¥{{ Math.floor(item.price) }}.<small>{{ (item.price % 1).toFixed(2).substring(2) }}</small>
-                  </span>
+                  <span class="cart-price">¥{{ Math.floor(item.price) }}.<small>{{ (item.price % 1).toFixed(2).substring(2) }}</small></span>
                   <span class="price-drop" v-if="item.priceDrop">降¥{{ item.priceDrop }}</span>
                 </div>
               </div>
+
               <div class="cart-right-wrapper">
-                <div class="cart-est-container">
-                  <span class="cart-est">到手 ¥{{ getEstimatedPrice(item).toFixed(2) }}</span>
-                  <div class="cart-final" v-if="item.directSave > 0">
-                    已优惠 ¥{{ ((item.directSave || 0) * item.qty).toFixed(2) }}
+                <template v-if="!isEditMode">
+                  <div class="cart-est-container">
+                    <span class="cart-est">到手 ¥{{ getEstimatedPrice(item).toFixed(2) }}</span>
+                    <div class="cart-final" v-if="item.directSave > 0">已优惠 ¥{{ ((item.directSave || 0) * item.qty).toFixed(2) }}</div>
                   </div>
-                </div>
-                <div class="cart-right">
-                <div class="qty-box">
-                  <button class="qty-btn" :disabled="item.qty <= 1" @click="changeQty(item, -1)">-</button>
-                  <input class="qty-input" type="number" :value="item.qty" @input="e => setQty(item, e.target.value)" />
-                  <button class="qty-btn" @click="changeQty(item, 1)">+</button>
-                </div>
-                </div>
+                  <div class="cart-right">
+                    <div class="qty-box">
+                      <button class="qty-btn" :disabled="item.qty <= 1" @click="changeQty(item, -1)">-</button>
+                      <input class="qty-input" type="number" :value="item.qty" @input="e => setQty(item, e.target.value)" />
+                      <button class="qty-btn" @click="changeQty(item, 1)">+</button>
+                    </div>
+                  </div>
+                </template>
+
+                <template v-else>
+                  <div class="item-actions">
+                    <button class="item-action-btn" @click="router.push('/favorites')">移入收藏</button>
+                    <button class="item-action-btn danger" @click="confirmDelete(item)">删除</button>
+                  </div>
+                </template>
               </div>
             </div>
-            <button class="cart-swipe-delete" @click="confirmDelete(item)">删除</button>
+
             <button class="cart-swipe-delete" @click="confirmDelete(item)">删除</button>
           </div>
         </div>
       </div>
 
-      <!-- 失效商品 -->
       <div v-if="hasInvalidItems" class="cart-invalid-section">
         <div class="invalid-header">
           <span>失效商品</span>
           <button class="clear-invalid-btn" @click="clearInvalidItems">清空失效商品</button>
         </div>
-        <div class="cart-store invalid-store" v-for="store in invalidStores" :key="'invalid-' + store.name">
-          <div v-for="item in store.items" :key="item.id" class="cart-item-invalid">
-            <img class="cart-thumb" :src="item.image" :alt="item.title" />
-            <div class="cart-info">
-              <div class="cart-title">{{ item.title }}</div>
-              <div class="cart-sku">{{ item.sku }}</div>
-              <div class="invalid-tag">商品已失效</div>
+        <div class="invalid-list">
+          <div class="cart-store invalid-store" v-for="store in invalidStores" :key="`invalid-${store.name}`">
+            <div v-for="item in store.items" :key="item.id" class="cart-item-invalid">
+              <img class="cart-thumb" :src="item.image" :alt="item.title" />
+              <div class="cart-info">
+                <div class="cart-title">{{ item.title }}</div>
+                <div class="cart-sku">{{ item.sku }}</div>
+                <div class="invalid-tag">商品已失效</div>
+              </div>
+              <button class="remove-invalid-btn" @click="confirmDelete(item)">×</button>
             </div>
-            <button class="remove-invalid-btn" @click="confirmDelete(item)">×</button>
           </div>
         </div>
-      </div>
-    </div>
-
-    <section v-if="hasItems" class="cart-summary">
-      <div class="summary-row">
-        <span>优惠明细</span>
-        <span class="summary-total">已优惠 <em>¥{{ discountTotal.toFixed(2) }}</em></span>
-        <button class="summary-toggle" @click="summaryOpen = !summaryOpen">
-          {{ summaryOpen ? '收起' : '展开' }}
-        </button>
-      </div>
-      <div v-if="summaryOpen" class="summary-row small">
-        <span>商品直降</span>
-        <span>-¥{{ directSave.toFixed(2) }}</span>
-      </div>
-      <div v-if="summaryOpen" class="summary-row small">
-        <span>店铺满减</span>
-        <span>-¥{{ fullCutSave.toFixed(2) }}</span>
-      </div>
-      <div v-if="summaryOpen" class="summary-row small">
-        <span>优惠券</span>
-        <span>-¥{{ couponSave.toFixed(2) }}</span>
-      </div>
-    </section>
-
-    <div v-if="hasItems" class="cart-footer">
-      <div class="footer-left">
-        <button class="check" :class="{ active: allChecked }" @click="toggleAll"></button>
-        <span>全选</span>
-      </div>
-      
-      <div class="footer-center" v-if="!isEditMode">
-        <div class="cart-total">
-          总计: <span>¥{{ Math.floor(finalTotal) }}.<small>{{ (finalTotal % 1).toFixed(2).substring(2) }}</small></span>
-        </div>
-        <div class="savings-badge" v-if="discountTotal > 0">已省 ¥{{ discountTotal.toFixed(2) }}</div>
-      </div>
-
-      <div class="footer-right">
-        <template v-if="isEditMode">
-          <button class="footer-btn ghost" @click="moveToWishlist">移入收藏</button>
-          <button class="footer-btn danger" @click="confirmDeleteSelected">删除({{ selectedCount }})</button>
-        </template>
-        <template v-else>
-          <button class="cart-pay" @click="goCheckout">去结算({{ selectedCount }})</button>
-        </template>
       </div>
     </div>
 
@@ -162,7 +123,7 @@
         <div class="empty-sub">快去挑选喜欢的商品吧</div>
         <button class="empty-btn" @click="goHome">去逛逛</button>
       </div>
-      
+
       <div class="guess-like">
         <div class="guess-title">猜你喜欢</div>
         <div class="home-grid">
@@ -175,7 +136,50 @@
       </div>
     </div>
 
-    <!-- 优惠券弹窗 -->
+    <div v-if="hasItems" class="cart-bottom-stack">
+      <section class="cart-summary">
+        <button class="summary-row is-head" @click="summaryOpen = !summaryOpen">
+          <span>优惠明细</span>
+          <span class="summary-total">已优惠 <em>¥{{ promotionBreakdown.total.toFixed(2) }}</em></span>
+          <span class="summary-toggle">{{ summaryOpen ? '收起' : '展开' }}</span>
+        </button>
+        <div v-if="summaryOpen" class="summary-row small">
+          <span>商品直降</span>
+          <span>-¥{{ promotionBreakdown.directSave.toFixed(2) }}</span>
+        </div>
+        <div v-if="summaryOpen" class="summary-row small">
+          <span>店铺满减</span>
+          <span>-¥{{ promotionBreakdown.fullCutSave.toFixed(2) }}</span>
+        </div>
+        <div v-if="summaryOpen" class="summary-row small">
+          <span>优惠券</span>
+          <span>-¥{{ promotionBreakdown.couponSave.toFixed(2) }}</span>
+        </div>
+      </section>
+
+      <div class="cart-footer">
+        <div class="footer-left">
+          <button class="check" :class="{ active: allChecked }" @click="toggleAll"></button>
+          <span>全选</span>
+        </div>
+
+        <div class="footer-center" v-if="!isEditMode">
+          <div class="cart-total">总计: <span>¥{{ Math.floor(finalTotal) }}.<small>{{ (finalTotal % 1).toFixed(2).substring(2) }}</small></span></div>
+          <div class="savings-badge">已选{{ selectedSkuCount }}件 · 已省 ¥{{ discountTotal.toFixed(2) }}</div>
+        </div>
+
+        <div class="footer-right">
+          <template v-if="isEditMode">
+            <button class="footer-btn ghost" @click="moveToWishlist">移入收藏</button>
+            <button class="footer-btn danger" @click="confirmDeleteSelected">删除({{ selectedLineCount }})</button>
+          </template>
+          <template v-else>
+            <button class="cart-pay" :disabled="selectedLineCount === 0" @click="goCheckout">去结算({{ selectedLineCount }})</button>
+          </template>
+        </div>
+      </div>
+    </div>
+
     <nut-popup v-model:visible="showCoupon" position="bottom" round>
       <div class="coupon-popup">
         <div class="popup-header">
@@ -192,8 +196,8 @@
               <div class="coupon-name">{{ coupon.name }}</div>
               <div class="coupon-expire">有效期至 {{ coupon.expireDate }}</div>
             </div>
-            <button 
-              class="coupon-claim-btn" 
+            <button
+              class="coupon-claim-btn"
               :class="{ claimed: coupon.claimed }"
               @click="claimCoupon(coupon)"
             >
@@ -204,7 +208,6 @@
       </div>
     </nut-popup>
 
-    <!-- 地址选择弹窗 (Mockup) -->
     <nut-popup v-model:visible="showAddress" position="bottom" round>
       <div class="address-popup">
         <div class="popup-header">选择收货地址</div>
@@ -223,7 +226,6 @@
       </div>
     </nut-popup>
 
-    <!-- 确认弹窗 (Mockup using nut-popup since dialog is complex) -->
     <nut-popup v-model:visible="showDeleteConfirm" position="center" round :style="{ width: '280px' }">
       <div class="confirm-popup">
         <div class="confirm-text">确定从购物车内删除该商品吗？</div>
@@ -247,9 +249,22 @@ import { IconFont } from '@nutui/icons-vue'
 
 const router = useRouter()
 const cartStore = useCartStore()
-const { 
-  stores, allItems, validItems, hasItems, selectedItems, selectedCount, allChecked, 
-  subtotal, directSave, fullCutSave, couponSave, discountTotal, finalTotal, isEditMode 
+const {
+  stores,
+  validItems,
+  hasItems,
+  selectedItems,
+  selectedLineCount,
+  selectedSkuCount,
+  allChecked,
+  subtotal,
+  directSave,
+  fullCutSave,
+  couponSave,
+  discountTotal,
+  finalTotal,
+  promotionBreakdown,
+  isEditMode
 } = storeToRefs(cartStore)
 
 const goBack = () => router.back()
@@ -257,14 +272,11 @@ const goHome = () => router.push('/')
 const summaryOpen = ref(false)
 const recommend = ref([])
 
-// Edit Mode
 const toggleEditMode = () => cartStore.toggleEditMode()
 
-// Address selection
 const showAddress = ref(false)
 const currentAddress = ref('朝阳区三环到四环之间')
 
-// Delete confirmation
 const showDeleteConfirm = ref(false)
 const pendingDeleteItem = ref(null)
 const pendingDeleteBatch = ref(false)
@@ -276,7 +288,7 @@ const confirmDelete = (item) => {
 }
 
 const confirmDeleteSelected = () => {
-  if (selectedCount.value === 0) return
+  if (selectedLineCount.value === 0) return
   pendingDeleteBatch.value = true
   showDeleteConfirm.value = true
 }
@@ -292,20 +304,19 @@ const executeDelete = () => {
 }
 
 const moveToWishlist = () => {
-  if (selectedCount.value === 0) return
-  // Mockup: in real app we'd call an API
+  if (selectedLineCount.value === 0) return
   cartStore.deleteSelected()
 }
 
 const getStoreCheckedTotal = (store) => {
   return store.items
-    .filter(i => !i.invalid && i.checked)
+    .filter((i) => !i.invalid && i.checked)
     .reduce((sum, item) => sum + item.price * item.qty, 0)
 }
 
 const getStoreCheckedCount = (store) => {
   return store.items
-    .filter(i => !i.invalid && i.checked)
+    .filter((i) => !i.invalid && i.checked)
     .reduce((sum, item) => sum + item.qty, 0)
 }
 
@@ -319,12 +330,17 @@ const getStoreDiscount = (store) => {
   return direct + fullCut + coupon
 }
 
-const getEstimatedPrice = (item) => {
-  const directSave = (item.directSave || 0) * item.qty
-  return Math.max(item.price * item.qty - directSave, 0)
+const getStoreCheckedEstimated = (store) => {
+  const total = getStoreCheckedTotal(store)
+  const discount = getStoreDiscount(store)
+  return Math.max(total - discount, 0)
 }
 
-// Coupon popup
+const getEstimatedPrice = (item) => {
+  const direct = (item.directSave || 0) * item.qty
+  return Math.max(item.price * item.qty - direct, 0)
+}
+
 const showCoupon = ref(false)
 const currentStore = ref(null)
 const availableCoupons = ref([
@@ -333,27 +349,26 @@ const availableCoupons = ref([
   { id: 3, name: '品类券', amount: 10, threshold: 99, expireDate: '2026-02-28', claimed: true }
 ])
 
-// Invalid items
 const validStores = computed(() => {
   return stores.value
-    .map(store => ({
+    .map((store) => ({
       ...store,
-      items: store.items.filter(item => !item.invalid)
+      items: store.items.filter((item) => !item.invalid)
     }))
-    .filter(store => store.items.length > 0)
+    .filter((store) => store.items.length > 0)
 })
 
 const hasInvalidItems = computed(() => {
-  return stores.value.some(store => store.items.some(item => item.invalid))
+  return stores.value.some((store) => store.items.some((item) => item.invalid))
 })
 
 const invalidStores = computed(() => {
   return stores.value
-    .map(store => ({
+    .map((store) => ({
       name: store.name,
-      items: store.items.filter(item => item.invalid)
+      items: store.items.filter((item) => item.invalid)
     }))
-    .filter(store => store.items.length > 0)
+    .filter((store) => store.items.length > 0)
 })
 
 const showCouponPopup = (store) => {
@@ -362,22 +377,29 @@ const showCouponPopup = (store) => {
 }
 
 const claimCoupon = (coupon) => {
-  if (!coupon.claimed) {
-    coupon.claimed = true
-  }
+  if (!coupon.claimed) coupon.claimed = true
 }
 
 const clearInvalidItems = () => {
-  cartStore.stores.forEach(store => {
-    store.items = store.items.filter(item => !item.invalid)
+  cartStore.stores.forEach((store) => {
+    store.items = store.items.filter((item) => !item.invalid)
+  })
+}
+
+let scrollRafId = null
+const handleScrollClose = () => {
+  if (scrollRafId !== null) return
+  scrollRafId = requestAnimationFrame(() => {
+    cartStore.closeAllSwipes()
+    scrollRafId = null
   })
 }
 
 onMounted(async () => {
-  window.addEventListener('scroll', closeAllSwipes, { passive: true })
+  window.addEventListener('scroll', handleScrollClose, { passive: true })
   const data = await getProducts()
   recommend.value = data
-  
+
   if (cartStore.stores.length === 0) {
     cartStore.initCart([
       {
@@ -385,8 +407,38 @@ onMounted(async () => {
         fullCut: { threshold: 199, discount: 20 },
         coupon: 10,
         items: [
-          { id: 1, title: products[0].title, sku: '衣服任洗，2件/双', price: 65, image: products[0].image, old: 0, qty: 1, checked: true, promos: ['限时秒杀', '满199减20'], directSave: 5, swiped: false, invalid: false, priceDrop: 5, loaded: false },
-          { id: 2, title: products[1].title, sku: '衣鞋任洗，2件/双', price: 65, image: products[1].image, old: 95, qty: 1, checked: true, promos: ['直降', '赠运费险'], directSave: 30, swiped: false, invalid: false, priceDrop: 0, loaded: false }
+          {
+            id: 1,
+            title: products[0].title,
+            sku: '衣服任洗，2件/双',
+            price: 65,
+            image: products[0].image,
+            old: 0,
+            qty: 1,
+            checked: true,
+            promos: ['限时秒杀', '满199减20'],
+            directSave: 5,
+            swiped: false,
+            invalid: false,
+            priceDrop: 5,
+            loaded: false
+          },
+          {
+            id: 2,
+            title: products[1].title,
+            sku: '衣鞋任洗，2件/双',
+            price: 65,
+            image: products[1].image,
+            old: 95,
+            qty: 1,
+            checked: true,
+            promos: ['直降', '赠运费险'],
+            directSave: 30,
+            swiped: false,
+            invalid: false,
+            priceDrop: 0,
+            loaded: false
+          }
         ]
       },
       {
@@ -394,8 +446,38 @@ onMounted(async () => {
         fullCut: { threshold: 500, discount: 50 },
         coupon: 0,
         items: [
-          { id: 3, title: products[2].title, sku: 'MAXS 欧盟认证款 5L', price: 599, image: products[2].image, old: 899, qty: 1, checked: false, promos: ['满减', '满500减50'], directSave: 200, swiped: false, invalid: false, priceDrop: 10, loaded: false },
-          { id: 4, title: products[3].title, sku: '已下架', price: 299, image: products[3].image, old: 399, qty: 1, checked: false, promos: [], directSave: 0, swiped: false, invalid: true, priceDrop: 0, loaded: false }
+          {
+            id: 3,
+            title: products[2].title,
+            sku: 'MAXS 欧盟认证款 5L',
+            price: 599,
+            image: products[2].image,
+            old: 899,
+            qty: 1,
+            checked: false,
+            promos: ['满减', '满500减50'],
+            directSave: 200,
+            swiped: false,
+            invalid: false,
+            priceDrop: 10,
+            loaded: false
+          },
+          {
+            id: 4,
+            title: products[3].title,
+            sku: '已下架',
+            price: 299,
+            image: products[3].image,
+            old: 399,
+            qty: 1,
+            checked: false,
+            promos: [],
+            directSave: 0,
+            swiped: false,
+            invalid: true,
+            priceDrop: 0,
+            loaded: false
+          }
         ]
       }
     ])
@@ -403,25 +485,30 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', closeAllSwipes)
+  window.removeEventListener('scroll', handleScrollClose)
+  if (scrollRafId !== null) {
+    cancelAnimationFrame(scrollRafId)
+    scrollRafId = null
+  }
 })
 
-// Swipe to delete
 const swipeState = reactive({
   startX: 0,
-  currentX: 0,
   startY: 0,
+  currentX: 0,
   currentY: 0,
-  swipingId: null
+  swipingId: null,
+  lockDirection: false,
+  isHorizontal: false
 })
 
 const closeAllSwipes = (exceptId = null) => {
-  cartStore.stores.forEach((store) =>
-    store.items.forEach((i) => {
-      if (exceptId !== null && i.id === exceptId) return
-      i.swiped = false
+  stores.value.forEach((store) => {
+    store.items.forEach((item) => {
+      if (exceptId !== null && item.id === exceptId) return
+      item.swiped = false
     })
-  )
+  })
 }
 
 const onTouchStart = (item, e) => {
@@ -431,34 +518,53 @@ const onTouchStart = (item, e) => {
   swipeState.currentX = swipeState.startX
   swipeState.currentY = swipeState.startY
   swipeState.swipingId = item.id
+  swipeState.lockDirection = false
+  swipeState.isHorizontal = false
 }
 
 const onTouchMove = (item, e) => {
   if (swipeState.swipingId !== item.id) return
+
   swipeState.currentX = e.touches[0].clientX
   swipeState.currentY = e.touches[0].clientY
-  const diff = swipeState.currentX - swipeState.startX
-  const diffY = Math.abs(swipeState.currentY - swipeState.startY)
-  if (diffY > 12) return
-  if (Math.abs(diff) < 6) return
+
+  const diffX = swipeState.currentX - swipeState.startX
+  const diffY = swipeState.currentY - swipeState.startY
+
+  if (!swipeState.lockDirection) {
+    if (Math.abs(diffX) < 8 && Math.abs(diffY) < 8) return
+    swipeState.lockDirection = true
+    swipeState.isHorizontal = Math.abs(diffX) > Math.abs(diffY)
+  }
+
+  if (!swipeState.isHorizontal) return
+
   if (e.cancelable) e.preventDefault()
-  if (diff < -20) {
+
+  if (diffX < -26) {
     closeAllSwipes()
     item.swiped = true
-  } else if (diff > 20) {
+  } else if (diffX > 26) {
     item.swiped = false
   }
 }
 
 const onTouchEnd = (item) => {
-  const diff = swipeState.currentX - swipeState.startX
-  if (diff > 40) {
-    item.swiped = false
-  } else if (diff < -40) {
-    closeAllSwipes()
-    item.swiped = true
+  if (swipeState.swipingId !== item.id) return
+
+  const diffX = swipeState.currentX - swipeState.startX
+  if (swipeState.isHorizontal) {
+    if (diffX < -42) {
+      closeAllSwipes()
+      item.swiped = true
+    } else if (diffX > 28) {
+      item.swiped = false
+    }
   }
+
   swipeState.swipingId = null
+  swipeState.lockDirection = false
+  swipeState.isHorizontal = false
 }
 
 const handleSwipeContainerClick = (item, e) => {
@@ -469,25 +575,10 @@ const handleSwipeContainerClick = (item, e) => {
   item.swiped = false
 }
 
-const toggleItem = (item) => {
-  cartStore.toggleItem(item)
-}
-
-const toggleAll = () => {
-  cartStore.toggleAll()
-}
-
-const changeQty = (item, delta) => {
-  cartStore.changeQty(item, delta)
-}
-
-const setQty = (item, value) => {
-  cartStore.setQty(item, value)
-}
-
-const removeItem = (item) => {
-  cartStore.removeItem(item)
-}
+const toggleItem = (item) => cartStore.toggleItem(item)
+const toggleAll = () => cartStore.toggleAll()
+const changeQty = (item, delta) => cartStore.changeQty(item, delta)
+const setQty = (item, value) => cartStore.setQty(item, value)
 
 const visiblePromos = (item) => {
   const list = item.promos || []
@@ -500,7 +591,33 @@ const hiddenPromoCount = (item) => {
 }
 
 const goCheckout = () => {
-  if (selectedCount.value === 0) return
-  router.push('/order-confirm')
+  if (selectedLineCount.value === 0) return
+
+  const snapshot = {
+    from: 'cart',
+    createdAt: Date.now(),
+    items: selectedItems.value.map((item) => ({
+      id: item.id,
+      title: item.title,
+      sku: item.sku,
+      price: item.price,
+      qty: item.qty,
+      image: item.image,
+      directSave: item.directSave || 0
+    })),
+    summary: {
+      selectedLineCount: selectedLineCount.value,
+      selectedSkuCount: selectedSkuCount.value,
+      subtotal: subtotal.value,
+      directSave: directSave.value,
+      fullCutSave: fullCutSave.value,
+      couponSave: couponSave.value,
+      discountTotal: discountTotal.value,
+      finalTotal: finalTotal.value
+    }
+  }
+
+  sessionStorage.setItem('mall-checkout-snapshot', JSON.stringify(snapshot))
+  router.push({ path: '/order-confirm', query: { from: 'cart', snapshotAt: String(snapshot.createdAt) } })
 }
 </script>

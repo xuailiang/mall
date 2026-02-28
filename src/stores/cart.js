@@ -17,11 +17,14 @@ export const useCartStore = defineStore('cart', () => {
     const validItems = computed(() => allItems.value.filter(i => !i.invalid))
     const hasItems = computed(() => validItems.value.length > 0)
     const selectedItems = computed(() => validItems.value.filter((i) => i.checked))
-    const selectedCount = computed(() => selectedItems.value.length)
-    const allChecked = computed(() => validItems.value.length > 0 && selectedItems.value.length === validItems.value.length)
+    const selectedLineCount = computed(() => selectedItems.value.length)
+    const selectedSkuCount = computed(() => selectedItems.value.reduce((sum, item) => sum + item.qty, 0))
+    // Keep legacy selectedCount for existing consumers.
+    const selectedCount = computed(() => selectedLineCount.value)
+    const allChecked = computed(() => validItems.value.length > 0 && selectedLineCount.value === validItems.value.length)
 
     const subtotal = computed(() => selectedItems.value.reduce((sum, item) => sum + item.price * item.qty, 0))
-    const directSave = computed(() => selectedItems.value.reduce((sum, item) => sum + (item.directSave || 0), 0))
+    const directSave = computed(() => selectedItems.value.reduce((sum, item) => sum + (item.directSave || 0) * item.qty, 0))
 
     const fullCutSave = computed(() => {
         return stores.value.reduce((sum, store) => {
@@ -44,6 +47,12 @@ export const useCartStore = defineStore('cart', () => {
 
     const discountTotal = computed(() => directSave.value + fullCutSave.value + couponSave.value)
     const finalTotal = computed(() => Math.max(subtotal.value - discountTotal.value, 0))
+    const promotionBreakdown = computed(() => ({
+        directSave: directSave.value,
+        fullCutSave: fullCutSave.value,
+        couponSave: couponSave.value,
+        total: discountTotal.value
+    }))
 
     // Actions
     const initCart = (initialData) => {
@@ -82,6 +91,14 @@ export const useCartStore = defineStore('cart', () => {
         stores.value.forEach((store) => {
             const idx = store.items.findIndex((i) => i.id === item.id)
             if (idx !== -1) store.items.splice(idx, 1)
+        })
+    }
+
+    const closeAllSwipes = () => {
+        stores.value.forEach((store) => {
+            store.items.forEach((item) => {
+                item.swiped = false
+            })
         })
     }
 
@@ -132,6 +149,8 @@ export const useCartStore = defineStore('cart', () => {
         validItems,
         hasItems,
         selectedItems,
+        selectedLineCount,
+        selectedSkuCount,
         selectedCount,
         allChecked,
         subtotal,
@@ -140,12 +159,14 @@ export const useCartStore = defineStore('cart', () => {
         couponSave,
         discountTotal,
         finalTotal,
+        promotionBreakdown,
         initCart,
         toggleItem,
         toggleAll,
         changeQty,
         setQty,
         removeItem,
+        closeAllSwipes,
         deleteSelected,
         toggleEditMode,
         addItem
